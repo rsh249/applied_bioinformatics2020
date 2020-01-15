@@ -205,7 +205,7 @@ Navigate to [GitHub](https://github.com) and create a new account using a userna
 
 ## 5) Create new Git Repository 
 
-When you have created and logged in to your GitHub account. On your profile page click on the Repositories tab and find the "New+" button. Create a new repository titled "BIO332_Bioinformatics". Select the option for this to be a private repository and the option to initialize the repository with a README file. Create the repository. 
+When you have created and logged in to your GitHub account. On your profile page click on the Repositories tab and find the "New+" button. Create a new repository titled "bioinf_notes" or similar. Select the option for this to be a private repository and the option to initialize the repository with a README file. Create the repository. 
 
 When the repository page opens copy the URL.
 
