@@ -34,23 +34,23 @@ Learn more about the Oxford Nanopore technology <a href="https://nanoporetech.co
 
 ## Lecture Schedule
 
-###Section 1: Intro to R Coding
+<b> Section 1: Intro to R Coding </b>
 
-####<a href='section1/Rstudio_and_Git.html'> R Setup and Basics </a>
+<a href='section1/Rstudio_and_Git.html'> R Setup and Basics </a>
 
-#### Data Manipulation with R and dplyr
+Data Manipulation with R and dplyr
 
-#### Data Visualization
+Data Visualization
 
-### Section 2: Project Management and Git
+<b> Section 2: Project Management and Git </b>
 
-#### Setting up Git repositories
+Setting up Git repositories
 
-#### Project Organization
+Project Organization
 
-### Section 3: Reproducible Analyses 
+<b> Section 3: Reproducible Analyses </b>
 
-### Section 4: HPC
+<b> Section 4: HPC </b>
 
 
 
