@@ -1,0 +1,248 @@
+---
+title: "Introduction to R, RStudio, and Git"
+author: "Prof. Harbert"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: 
+  html_document:
+    theme: united
+    highlight: tango
+    df_print: paged
+    toc: true
+    toc_float: true
+    toc_depth: 4
+  
+---
+
+
+```{r setup, include=FALSE}
+library(reticulate)
+use_python('/home/rharbert/anaconda3/bin/python')
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+
+# Setup
+
+For this course you will need to install the R programming language, RStudio development app, and create a Git account on [GitHub](www.github.com). You will use R through the RStudio interface to develop bioinformatics analyses and data visualizations. The next few sessions will introduce R programming in greater detail.
+
+## 1) Install R
+
+Get the most recent version of R [here](https://mirrors.nics.utk.edu/cran/). Once downloaded you will install it on your computer accepting all of the default configuration settings.
+
+## 2) Install RStudio {.tabset .tabset-fade .tabset-pills}
+
+### Download & Setup
+
+Download the current FREE Desktop version of [RStudio](https://rstudio.com/products/rstudio/download/). (ONLY do this after installing R)
+
+Open RStudio
+
+### Tour
+
+RStudio has four panels that you will interact with. Clockwise from top-left these are: Scripts, Environment/History, Console/Terminal, and Files/Plots. 
+
+The Scripts window may not be open at first. This is where we will write and interact with code, notes, and other files. If you do not see the top-left window at first you should click on the green plus sign in the menu, or open a new R script using File -> New File -> R Script.
+
+The Environment window shows you what data and objects you have access to in your R environment. Other tabs are History, Connections, and Git. History shows past commands/code. Connections shows open connections to other devices (e.g., databases), mostly we will not use this.
+
+The Console is where we run R code. There is another tab on most RStudio versions in this area called "Terminal". The Console always starts with a prompt of ">". The Terminal always has a prompt ending with "$". The R console is for R language commands, whereas the Terminal is for Bash command line operations (Not R). For now, make sure you are in the Console tab.
+
+The Files/Plots provides windows to inderact with files on your computer and view plots and graphs that we create using R. You will also see tabs for "Packages" and "Help". These are where you look for code documentation files that can be helpful for learning how to use new tools and troubleshooting.
+
+### Questions
+
+How do you open a new file?
+
+What type of file should you use for R Code? What about notes? What is a C++ file?
+
+Where do you type code?
+
+What is the difference between the "Console" and the "Terminal"?
+
+Where can you look for Help?
+
+
+## 3) Test R/RStudio {.tabset .tabset-fade .tabset-pills}
+
+### R overview
+
+R is a versatile, open source programming/scripting language that’s useful both for statistics but also data science. Inspired by the programming language S.
+
++ Open source software under [Gnu General Public License (GPL)](https://www.gnu.org/licenses/gpl-3.0.en.html)
++ Superior (if not just comparable) to commercial (paid) alternatives. R has over [10,000 user contributed packages at this time](https://cran.r-project.org/web/packages/available_packages_by_name.html). It’s widely used both in academia and industry.
++ Available on all platforms (Windows/Mac/Unix).
++ Not just for statistics!
++ For people who have experience in programmming: R is both an object-oriented and functional language.
++ Lots of support from online communities.
+
+
+### Demo
+
+R is what is known as an "interpretted" programming language. That means that we can type valid R code in the console, the R interpreter will read the code and execute the appropriate commands to the computer. When those commands have completed the console prompt will return along with any messages or data that are meant to come back. 
+
+Try typing the following code into the R console:
+
+```{R, eval=F}
+1+1
+```
+
+What happened? The R interpreter read the numbers and operator you sent in your command "1+1". It identified the ones as numbers and the plus as an addition operator. Then it calculated the addition of one plus one and returned the value. 
+
+R is a perfectly suitable calculator. The standard math operators you will need are:
+
+```{R, eval=F}
+# Addition
+1+1
+
+# Subtraction
+1-1
+
+# Division
+2/3
+
+# Multiplication
+5*5
+
+# Exponents
+2^2 
+2**2
+
+```
+
+Other features of R:
+
+Setting variables/objects --
+
+```{R, eval=F}
+x=1
+
+x
+
+x+1
+
+x+x
+
+y=2
+
+y+x
+
+```
+
+Vectors (array/list)
+
+```{R, eval=F}
+# Numeric Vector
+v = c(1,2,3,4,5,4,3,2,1)
+
+v
+
+## Accessing values of a vector:
+v[1]
+
+v[5]
+
+## Non-numeric vector
+dow = c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')
+
+dow[1] #one day
+dow[1:3] #multiple
+
+
+```
+
+Functions -- In R functions are always given a name and end in parentheses that may accept arguments.
+
+```{R, eval=F}
+# A function with no required argument
+getwd()
+
+# A function w/argument
+print(v)
+print(dow)
+
+```
+
+Other simple functions you may want to try: 'sqrt()', 'log()', 'class()'. See what these do with 'x' (e.g., log(x)).
+
+### Getting Help
+
+If you see a function in R code and do not know what to do you should type:
+
+```{R, eval=F}
+?functionName()
+```
+
+This will open a tab in the Help window to show you documentation on the function if it exists.
+
+### Scripting
+
+While these simple commands are easy to just type into the Console we want every piece of code you write to be reproducible. If only just for your reference later. The best practice in RStudio is to write all code commands into an R Script document. Then these can be run line-by-line with the command 'Ctrl+Enter'. Or lines/chunks can be copied and pasted into the Console. 
+
+It is a good idea to include regular non-code/plain language comments in your scripts. Be sure to start lines that are NOT valid code with a # (hash) sign. 
+
+e.g.,
+
+```{R, eval=F}
+# This is how you add two numbers in R
+x+1
+
+# This is how multiplication works in R
+x*2
+```
+
+Save your scripts regularly even if you are just keeping code notes.
+
+## 4) Create GitHub Account
+
+Git is a software tool for version control and project tracking that is popular for programming, data science, and software engineering. We will use Git throughout these lessons as a tool to manage your coursework code and later project work.
+
+GitHub is a website that runs a Git backup service. This gives you a way to back up all of your work off of your computer directly from RStudio. We will use GitHub not only to backup your code, but also to move code and other project work to work on High Performance Compute (HPC) resources.
+
+Later you will find that GitHub can also be used to distribute code and software. 
+
+Navigate to [GitHub](https://github.com) and create a new account using a username and password you will remember.
+
+## 5) Create new Git Repository 
+
+When you have created and logged in to your GitHub account. On your profile page click on the Repositories tab and find the "New+" button. Create a new repository titled "BIO332_Bioinformatics". Select the option for this to be a private repository and the option to initialize the repository with a README file. Create the repository. 
+
+When the repository page opens copy the URL.
+
+
+## 6) Start new Project with Git/RStudio
+
+Now we will link the Git repository to your RStudio session so that R scripts and code you write can be immediately backed-up and tracked by Git.
+
+In RStudio "File -> New Project" then choose to start a project from Version Control and choose to use Git version control. Then paste the repository URL from the repo you just created. This should autofill the project name as the repository name. In the last field create this project as a subdirectory of a folder called "GitHub".
+
+# Homework: 
+
+1) Notes
+
+Create a folder in your Git project folder called "code"
+
+Transcribe your notes from today including any code we tried into an R Script file in 'code'. Name it "intro_R_notes.R". 
+
+2) Practice R basics
+
+Write a new R script that does the following:
+
+Set a vector with integer numbers 1 through 10.
+
+Experiment with math operators (+, -, /, *, **, ^) on this vector. What happens?
+
+Try the functions: mean(), max(), min() on this vector. What happens?
+
+Make notes as comment lines (start with '#')
+
+Save this R script as 'hw_R_basics.R'
+
+3) Update Git
+
+[Read this page describing what version control is and why you might need it](https://swcarpentry.github.io/git-novice/01-basics/index.html)
+
+Then, use the [instructions here](https://swcarpentry.github.io/git-novice/14-supplemental-rstudio/index.html) about how to interact with Git from RStudio to "Commit" and "Push" the new scripts you added to your repository.
+
+As always, post questions related to homework on the Slack workspace [#questions](https://bio332applied-4mi2242.slack.com/archives/CSRS46M7H)
+

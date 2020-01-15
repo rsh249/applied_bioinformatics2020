@@ -27,12 +27,32 @@ This course explores the growing field of Bioinformatics through hands-on and pr
 
 The 2020 Spring semester course will focus on generating and analyzing data from environmental DNA (eDNA). eDNA is any molecule of DNA that can be recovered from non-tissue sources such as soil, water, and air. Modern DNA sequencing technology has become sensitive enough to detect and sequence trace amounds of DNA and so has opened new avenues of research in microbiomics, metagenomics, ancient DNA, and biodiversity monitoring. We will be sequencing eDNA using the the Oxford Nanopore MinION DNA sequencer. The MinION is a benchtop, real-time DNA sequencer that is revolutionizing the field of genomics by providing portable and inexpensive DNA sequencing. We will be generating data and exploring bioinformatics tools available to process Nanopore data. Students will contribute to an ongoing research project through lab, field, and computational development.
 
-Learn more about the Oxford Nanopore technology: https://nanoporetech.com/products/minion 
+Learn more about the Oxford Nanopore technology <a href="https://nanoporetech.com/products/minion"> here </a>.
 
 
 # Outline:
 
-### Weekly Labs/Lectures:
+## Lecture Schedule
+
+###Section 1: Intro to R Coding
+
+####<a href='section1/Rstudio_and_Git.html'> R Setup and Basics </a>
+
+#### Data Manipulation with R and dplyr
+
+#### Data Visualization
+
+### Section 2: Project Management and Git
+
+#### Setting up Git repositories
+
+#### Project Organization
+
+### Section 3: Reproducible Analyses 
+
+### Section 4: HPC
+
+
 
 
 
