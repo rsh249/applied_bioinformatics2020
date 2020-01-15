@@ -218,13 +218,15 @@ In RStudio "File -> New Project" then choose to start a project from Version Con
 
 # Homework: 
 
-1) Notes
+
+###1) Notes
 
 Create a folder in your Git project folder called "code"
 
 Transcribe your notes from today including any code we tried into an R Script file in 'code'. Name it "intro_R_notes.R". 
 
-2) Practice R basics
+
+###2) Practice R basics
 
 Write a new R script that does the following:
 
@@ -238,7 +240,8 @@ Make notes as comment lines (start with '#')
 
 Save this R script as 'hw_R_basics.R'
 
-3) Update Git
+
+###3) Update Git
 
 [Read this page describing what version control is and why you might need it](https://swcarpentry.github.io/git-novice/01-basics/index.html)
 
