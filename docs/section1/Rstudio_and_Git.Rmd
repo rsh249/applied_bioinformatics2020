@@ -67,13 +67,12 @@ Where can you look for Help?
 
 ### R overview
 
-R is a versatile, open source programming/scripting language that’s useful both for statistics but also data science. Inspired by the programming language S.
+R is an open source programming language that is useful for statistics, data science, and general scientific computing. 
 
 + Open source software under [Gnu General Public License (GPL)](https://www.gnu.org/licenses/gpl-3.0.en.html)
-+ Superior (if not just comparable) to commercial (paid) alternatives. R has over [10,000 user contributed packages at this time](https://cran.r-project.org/web/packages/available_packages_by_name.html). It’s widely used both in academia and industry.
++  R has over [10,000 user contributed packages at this time](https://cran.r-project.org/web/packages/available_packages_by_name.html). Widely used both in academia and industry.
 + Available on all platforms (Windows/Mac/Unix).
 + Not just for statistics!
-+ For people who have experience in programmming: R is both an object-oriented and functional language.
 + Lots of support from online communities.
 
 
