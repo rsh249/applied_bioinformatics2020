@@ -1,7 +1,7 @@
 ---
-title: "More R"
+title: "R Basics: Vectors, matrix objects, read files"
 author: "Prof. Harbert"
-date: Meeting 4
+date: "Part 3"
 output: 
   html_document:
     theme: united
@@ -134,8 +134,7 @@ boxplot(cars[,'hp'])
 
 
 
-# [Home](https://rsh249.github.io/bioinformatics)
-
+# [Home](https://devbioinformatics.org)
 
 
 

@@ -1,7 +1,7 @@
 ---
-title: "Getting started with R"
+title: "R Basics: Vectors, matrix objects, read files"
 author: "Prof. Harbert"
-date: Lab 1
+date: "Part 2"
 output: 
   html_document:
     theme: united

@@ -1,7 +1,7 @@
 ---
 title: "Introduction to R, RStudio, and Git"
 author: "Prof. Harbert"
-date: "`r format(Sys.time(), '%d %B, %Y')`"
+date: "Part 1"
 output: 
   html_document:
     theme: united
@@ -248,3 +248,5 @@ Then, use the [instructions here](https://swcarpentry.github.io/git-novice/14-su
 
 As always, post questions related to homework on the Slack workspace [#questions](https://bio332applied-4mi2242.slack.com/archives/CSRS46M7H)
 
+
+# [Home](https://devbioinformatics.org)
