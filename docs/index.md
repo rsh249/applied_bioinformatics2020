@@ -38,6 +38,10 @@ Learn more about the Oxford Nanopore technology <a href="https://nanoporetech.co
 
 <a href='section1/Rstudio_and_Git.html'> R Setup and Basics </a>
 
+<a href='section1/R_intro1.html'> R Basics: Vector, matrix, read files </a>
+
+<a href='section1/R_intro2.html'> R Basics: Visualization </a>
+
 Data Manipulation with R and dplyr
 
 Data Visualization
@@ -53,14 +57,6 @@ Project Organization
 <b> Section 4: HPC </b>
 
 
-
-
-
-### Links to Blogs
-
-Use the RMarkdown template provided <a href = 'https://raw.githubusercontent.com/rsh249/applied_bioinformatics/master/docs/rmarkdown_template.Rmd'> here </a>. View template output <a href = 'rmarkdown_template.html'> here </a>.
-
-Student written Blogs: TBA
 
 
 

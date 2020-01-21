@@ -128,18 +128,10 @@ write.csv(cars, file='mtcars.csv')
 
 Where are these files now?
 
-
-# Homework Assignment
-
-
-1) Read your data into R. 
-2) *DISCUSSION*: In the slack [#discussion](https://introbioinformatics.slack.com/messages/CN3DX55M3) channel we will host this week's discussion. Please search online for an R related resource for R beginners. This could be a book/eBook, a web tutorial, youtube video, or something else. Post what you find. Look through the resource you found and tell the group about it (what it is, how it is structured, who it is targetted to).
+# Next: Visualize data
 
 
-
-
-
-# [Home](https://rsh249.github.io/bioinformatics)
+# [Home](https://devbioinformatics.org)
 
 
 
