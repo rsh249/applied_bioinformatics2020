@@ -307,10 +307,6 @@ div.tocify {
 <div id="home" class="section level1">
 <h1><a href="https://devbioinformatics.org">Home</a></h1>
 </div>
-<div id="cool-stuff" class="section level1">
-<h1>Cool stuff:</h1>
-<p><a href="https://aeon.co/amp/videos/watch-a-single-cell-become-a-complete-organism-in-six-pulsing-minutes-of-timelapse?__twitter_impression=true" class="uri">https://aeon.co/amp/videos/watch-a-single-cell-become-a-complete-organism-in-six-pulsing-minutes-of-timelapse?__twitter_impression=true</a></p>
-</div>
 <div id="data-visualization" class="section level1">
 <h1>Data Visualization</h1>
 <p>Today we will be using ‘ggplot’, an R package for data visualization. These tools will help you create publication quality plots and figures directly from your R code. If there is one thing that you get out of this class I hope that it is som confidence with these tools.</p>
@@ -333,7 +329,7 @@ div.tocify {
 <h2>Read Census Data</h2>
 <p>For this section we will read in a table of US Census Demographic data from <a href="https://www.kaggle.com/muonneutrino/us-census-demographic-data" class="uri">https://www.kaggle.com/muonneutrino/us-census-demographic-data</a>. The file can be found on the RStudio server at ‘/usr/share/data/kaggle/census.csv’.</p>
 <p>To read data into R we use: read.table() read.csv() read.delim()</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">census =<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">'/usr/share/data/kaggle/census.csv'</span>)
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">census =<span class="st"> </span><span class="kw">read.csv</span>(<span class="st">'https://raw.githubusercontent.com/rsh249/applied_bioinformatics2020/master/data/census.csv'</span>)
 <span class="kw">head</span>(census)</code></pre></div>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">

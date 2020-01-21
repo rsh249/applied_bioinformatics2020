@@ -42,9 +42,11 @@ Learn more about the Oxford Nanopore technology <a href="https://nanoporetech.co
 
 <a href='section1/R_intro2.html'> R Basics: Visualization </a>
 
+<a href='section1/R_ggplot.html'> Data Visualization </a>
+
 Data Manipulation with R and dplyr
 
-Data Visualization
+
 
 <b> Section 2: Project Management and Git </b>
 

@@ -59,7 +59,7 @@ read.csv()
 read.delim()
 
 ```{r, eval=TRUE}
-census = read.csv('/usr/share/data/kaggle/census.csv')
+census = read.csv('https://raw.githubusercontent.com/rsh249/applied_bioinformatics2020/master/data/census.csv')
 head(census)
 
 ```
