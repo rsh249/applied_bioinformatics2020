@@ -50,7 +50,7 @@ The BBC Visual and Data Journalism team uses R and ggplot to create their public
 
 ## Read Census Data
 
-For this section we will read in a table of US Census Demographic data from https://www.kaggle.com/muonneutrino/us-census-demographic-data. The file can be found on the RStudio server at '/usr/share/data/kaggle/census.csv'. 
+For this section we will read in a table of US Census Demographic data from https://www.kaggle.com/muonneutrino/us-census-demographic-data.
 
 
 To read data into R we use:
@@ -75,11 +75,27 @@ For help and an overview of all of the graphics types that are available in ggpl
 library(ggplot2)
 ```
 
-### Recall: Scatterplots using 'geom_point()'
+After loading the ggplot2 library we have access to the visualization functions in the library. The general form of all ggplot calls will be:
+
+```{R, eval=F}
+# start a plot object
+# declare the data you want to work with in ggplot
+ggplot(data=somedata) +
+    # define one or more 'geom'etric attributes.
+    # These tell R what kind of graph we want (e.g., scatterplot, histogram)
+    # define the aesthetic (first: what variables to use)
+    geom_point(aes(x=xvar, y=yvar)) +
+    # Edit things about how the graph looks
+    theme()
+
+
+```
+
+### Scatterplots using 'geom_point()'
 
 ```{r}
 ggplot(data = census) +
-  geom_point(mapping = aes(x = Citizen, y = TotalPop))
+  geom_point(aes(x = Citizen, y = TotalPop))
 ```
 
 ## Graphs for single parameters:
@@ -127,14 +143,6 @@ ggplot(data=census) +
   xlim(c(0,10000))
 ```
 
-### geom_area()
-
-```{r}
-ggplot(data=census) +
-  geom_area(stat='bin', bins = 30, aes(x=Citizen)) +
-  xlim(c(0,10000))
-```
-
 ### For Discrete values: geom_bar()
 
 ```{r}
@@ -172,17 +180,26 @@ ggplot(data=census) +
     geom_point(aes(x=IncomePerCap, y=Poverty))
 ```
 
-See also: geom_jitter(), and geom_label()
+See also: geom_jitter() for when you have overlapping points, and geom_label() to add text labels to points.
 
 #### geom_smooth
 
-Add a line
+Add a line. WARNING: The default is NOT a linear regression. 
 
 ```{r}
 ggplot(data=census) + 
     geom_point(aes(x=IncomePerCap, y=Poverty), alpha=0.1) +
-    geom_smooth(aes(x=IncomePerCap, y=Poverty)) 
+    geom_smooth(aes(x=IncomePerCap, y=Poverty)) # adds a line of best fit
 ```
+
+To make this a plot with a linear model (Maybe Not the Best Idea) use the 'method="lm"' argument in geom_smooth:
+
+```{R}
+ggplot(data=census) + 
+    geom_point(aes(x=IncomePerCap, y=Poverty), alpha=0.1) +
+    geom_smooth(aes(x=IncomePerCap, y=Poverty), method='lm')
+```
+
 
 #### Countour and density plots
 
@@ -211,30 +228,85 @@ ggplot(data=census[1:10000,]) +
     geom_violin(aes(x=State, y=Poverty)) 
 ```
 
-## Facetting: Multipanel plots
-
-Plus more logical subsetting using the '%in%' operator.
-
-
-```{R}
-ggplot(data=census[census$State %in% c('Alabama', 'Oregon', 'New York', 'California'),]) + 
-    geom_point(aes(x=Employed, y=Poverty)) +
-    facet_grid(~State) + theme(axis.text.x = element_text(angle=90))
-    
-```
 
 ### Challenge 2
 
-Develop a plot showing the relationship between MeanCommute and Transit. Then attempt to facet this by State for a subset (use %in%) of five states of your choosing.
+Develop a plot showing the relationship between MeanCommute (time in minutes) and Transit (% using transit). 
 
+## Changing the appearance of your plot:
+
+
+### Color 
+
+We can change colors of attributes. E.g., the points in a scatterplot
+```{R}
+#first make this smaller and look only for data from Mass
+census2=census[census$State=='Massachusetts',]
+ggplot(data=census2) + 
+    geom_point(aes(x=IncomePerCap, y=Poverty, col='red'))
+```
+
+Or we can apply a range of colors that correspond to some categorical data for each row.
+
+```{R}
+ggplot(data=census2) + 
+    geom_point(aes(x=IncomePerCap, y=Poverty, col=County), alpha=0.1)
+```
+### Themes
+
+Every ggplot object has a theme attribute. We can manipulate those with the 'theme()' function, but there are ~1,000 moving pieces there. For now, here are some default theme functions that produce nice graphics:
+
+#### theme_bw: black and white lines and background
+
+```{R}
+ggplot(data=census2) + 
+    geom_point(aes(x=IncomePerCap, y=Poverty, col=County), alpha=0.1) +
+  theme_bw()
+```
+
+#### theme_minimal: simplified
+
+```{R}
+ggplot(data=census2) + 
+    geom_point(aes(x=IncomePerCap, y=Poverty, col=County), alpha=0.1) +
+  theme_minimal()
+```
+
+#### theme_void: not usually what you want
+
+```{R}
+ggplot(data=census2) + 
+    geom_point(aes(x=IncomePerCap, y=Poverty, col=County), alpha=0.1) +
+  theme_void()
+```
 
 # Save your work
 
 You should have been keeping your code in an R script file. Save that file now so that you can refer back to it later.
 
+# Save your Plot
+
+The function 'ggsave()' can save any ggplot object as an image. By default it will save the most recent plot in your session with:
+
+```{R}
+ggsave(file='lastgraph.png', height=6, width=6, units='in', dpi=600)
+```
+
+OR: Much better method --> Redirect your plot call to an object and ggsave that
+
+
+```{R}
+graph_obj <- ggplot(data=census2) + 
+    geom_point(aes(x=IncomePerCap, y=Poverty, col=County), alpha=0.1) +
+  theme_bw()
+
+ggsave(graph_obj, file='income_vs_poverty.png', height=6, width=6, units='in', dpi=600)
+
+```
+
 # Homework:
 
-Include notes on ggplot and code to create at least one of these plots in your blog for the week.
+Include notes on ggplot and code to create *at least one* of these plots in your blog for the week.
 
 
 
