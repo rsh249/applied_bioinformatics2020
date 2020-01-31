@@ -252,6 +252,7 @@ Or we can apply a range of colors that correspond to some categorical data for e
 ggplot(data=census2) + 
     geom_point(aes(x=IncomePerCap, y=Poverty, col=County), alpha=0.1)
 ```
+
 ### Themes
 
 Every ggplot object has a theme attribute. We can manipulate those with the 'theme()' function, but there are ~1,000 moving pieces there. For now, here are some default theme functions that produce nice graphics:

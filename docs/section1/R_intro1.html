@@ -322,9 +322,12 @@ div.tocify {
 <span class="kw">print</span>(x) ##Print method
 <span class="kw">class</span>(x)</code></pre></div>
 <p>What did that do? ‘x=2’ sets a variable named x equal to 2. Then we use the function print() to show us what is in the variable ‘x’. Last, class() is a function that shows what kind of data is stored in the variable x.</p>
-<p><em>Recall</em>: We saw last session that R can perform basic math operations both with entered numbers or values stored in variables. ## Functions</p>
+<p><em>Recall</em>: We saw last session that R can perform basic math operations both with entered numbers or values stored in variables.</p>
+<div id="functions" class="section level2">
+<h2>Functions</h2>
 <p>In all programming languages most code is base on functions. R functions are always a single word or phrase with parentheses () at the end (e.g., print()). Arguments (options) and data can be passed to the function code.</p>
 <p>We will see many functions going forward.</p>
+</div>
 <div id="vectors" class="section level2">
 <h2>Vectors</h2>
 <p>Often we need to create objects that store more than one value. A simple list of data is called a vector in R. To set up one:</p>
@@ -351,11 +354,11 @@ y[<span class="dv">1</span>,<span class="dv">1</span>] =<span class="st"> </span
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">y[<span class="dv">1</span>,<span class="dv">1</span>] <span class="co"># See value in row 1 column 1</span>
 y[,<span class="dv">1</span>] <span class="co"># see all of column 1</span>
 
-y[,<span class="dv">1</span>] =<span class="st"> </span><span class="kw">seq</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">5</span>) <span class="co"># put data in column 1</span>
-y[,<span class="dv">2</span>] =<span class="st"> </span><span class="kw">seq</span>(<span class="dv">6</span><span class="op">:</span><span class="dv">10</span>)
-y[,<span class="dv">3</span>] =<span class="st"> </span><span class="kw">seq</span>(<span class="dv">11</span><span class="op">:</span><span class="dv">15</span>)
-y[,<span class="dv">4</span>] =<span class="st"> </span><span class="kw">seq</span>(<span class="dv">16</span><span class="op">:</span><span class="dv">20</span>)
-y[,<span class="dv">5</span>] =<span class="st"> </span><span class="kw">seq</span>(<span class="dv">11</span><span class="op">:</span><span class="dv">15</span>)
+y[,<span class="dv">1</span>] =<span class="st"> </span><span class="kw">seq</span>(<span class="dv">1</span>,<span class="dv">5</span>) <span class="co"># put data in column 1</span>
+y[,<span class="dv">2</span>] =<span class="st"> </span><span class="kw">seq</span>(<span class="dv">6</span>,<span class="dv">10</span>)
+y[,<span class="dv">3</span>] =<span class="st"> </span><span class="kw">seq</span>(<span class="dv">11</span>,<span class="dv">15</span>)
+y[,<span class="dv">4</span>] =<span class="st"> </span><span class="kw">seq</span>(<span class="dv">16</span>,<span class="dv">20</span>)
+y[,<span class="dv">5</span>] =<span class="st"> </span><span class="kw">seq</span>(<span class="dv">11</span>,<span class="dv">15</span>)
 
 <span class="kw">print</span>(y)</code></pre></div>
 </div>

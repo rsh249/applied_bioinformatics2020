@@ -32,7 +32,15 @@ cars = read.table(file, header=T, sep = ',') # Read a comma separated values fil
 head(cars)
 ```
 
+NOTE: The arguments we pass to read.table() give the path to a file (in this case a URL to a text file that R can download), whether or not there are column names (header=T means that the first line is the header with those names), and the field separator (in this case a comma "sep=','").
+
+
+
 ## Write Files
+
+When you want to save a table you are working on in R you will use one of the write functions in R.
+
+write.table() and write.csv() save matrices and similar data objects as text files in your current working directory. 
 
 ```{r}
 write.table(cars, file='mtcars.tab')
@@ -40,6 +48,12 @@ write.csv(cars, file='mtcars.csv')
 ```
 
 Where are these files now?
+
+Try and find them in the output of list.files(): 
+
+```{R}
+list.files()
+```
 
 ## A note on Paths
 

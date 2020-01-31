@@ -41,6 +41,7 @@ class(x)
 What did that do? 'x=2' sets a variable named x equal to 2. Then we use the function print() to show us what is in the variable 'x'. Last, class() is a function that shows what kind of data is stored in the variable x.
 
 *Recall*: We saw last session that R can perform basic math operations both with entered numbers or values stored in variables.
+
 ## Functions
 
 In all programming languages most code is base on functions. R functions are always a single word or phrase with parentheses () at the end (e.g., print()). Arguments (options) and data can be passed to the function code.
@@ -90,11 +91,11 @@ Rows and columns. In 2D data structures there are index values for both rows and
 y[1,1] # See value in row 1 column 1
 y[,1] # see all of column 1
 
-y[,1] = seq(1:5) # put data in column 1
-y[,2] = seq(6:10)
-y[,3] = seq(11:15)
-y[,4] = seq(16:20)
-y[,5] = seq(11:15)
+y[,1] = seq(1,5) # put data in column 1
+y[,2] = seq(6,10)
+y[,3] = seq(11,15)
+y[,4] = seq(16,20)
+y[,5] = seq(11,15)
 
 print(y)
 
