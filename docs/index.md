@@ -46,9 +46,11 @@ Learn more about the Oxford Nanopore technology <a href="https://nanoporetech.co
 
 Data Manipulation with R and dplyr
 
+<b> Section 2: DNA Sequence Data in R </b>
 
+<a href='section2/read_fastq.html'> R for DNA sequence data: fastq </a>
 
-<b> Section 2: Project Management and Git </b>
+<b> Section 3: Project Management and Git </b>
 
 Setting up Git repositories
 

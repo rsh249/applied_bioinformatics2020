@@ -1,0 +1,152 @@
+---
+title: "R for DNA sequence data"
+author: "Prof. Harbert"
+date: "Section 2: Part 1"
+output: 
+  html_document:
+    theme: united
+    highlight: tango
+    df_print: paged
+    toc: true
+    toc_float: true
+    toc_depth: 4
+  
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Goals
+
++ Set up Bioinformatics packages for R via [Bioconductor](https://www.bioconductor.org/)
++ Read and view *fastq* DNA sequence files.
++ Interact with sequence objects in R
++ Simple search for DNA sequence motifs
++ Examine read quality strings [Phred scores](https://en.wikipedia.org/wiki/Phred_quality_score)
+
+
+# DNA sequence data: *fastq*
+
+# Setting up Bioconductor
+
+
+Install Bioconductor and associated libraries with: 
+
+```{R, eval=F}
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager")
+BiocManager::install(version = "3.10")
+```
+
+Then test by trying to load libraries for today's material:
+
+```{R, message=FALSE}
+library(ShortRead)
+```
+
+
+# Reading data
+
+Download sequence data from: https://raw.githubusercontent.com/rsh249/applied_bioinformatics2020/master/data/all.fastq
+
+```{R}
+dir.create("data", showWarnings = FALSE)
+download.file("https://raw.githubusercontent.com/rsh249/applied_bioinformatics2020/master/data/all.fastq", "data/rapid_test.fastq")
+```
+
+Wait....
+
+
+Once that is downloaded try to read the data in. Since fastq is NOT a tabular/rectangular data format we cannot use the read.csv() and read.table() functions you saw earlier.
+
+Instead we need read functions from Bioconductor packages that are designed to read fastq data. [readFastq](https://www.rdocumentation.org/packages/ShortRead/versions/1.30.0/topics/readFastq)
+
+```{R}
+library(ShortRead)
+rapid_test = readFastq('data', pattern='rapid_test.fastq')
+```
+
+*Warning* Using the Bioconductor 'ShortRead' package here is a little "hacky". In the sense that ShortRead is has functions targetted at short read DNA sequencing technologies. The data you just read in are Nanopore "long" read data. So some functionality might be inadequate. We will explore further.
+
+# Examining *fastq* data
+
+How is this new data object structured? If not a table how do we access parts of the object?
+
+```{R}
+# ShortRead Functions for looking at fastq data
+reads = sread(rapid_test) # the set of sequence data
+idstr = id(rapid_test) # id numbers
+qscores = quality(rapid_test) # sequence quality strings
+```
+
+## Sequence reads
+
+The sread() function from 'ShortReads' parses the fastq object for the DNA sequences.
+
+How many sequences do we have?
+
+```{R}
+reads = sread(rapid_test)
+class(reads) #what is this object?
+length(reads)
+```
+
+What can we tell about the read lengths? Notice that each has an attribute called "width",  that is the number of DNA characters in each read. However, those elements are deep into these BioStrings objects. Explore these with the '@' operator.
+
+```{R}
+#print(reads@ranges) #how each read is mapped in the object
+#print(reads@pool) #looks like the entire memory object of sequences
+widths = as.data.frame(reads@ranges@width)
+
+library(ggplot2)
+
+(widthplot <- ggplot(widths) +
+  geom_histogram(aes(x=reads@ranges@width), binwidth = 100) + 
+  theme_linedraw() + 
+  xlab('Read Length (bp)') +
+  ggtitle('Not a great read length distribution'))
+```
+
+## Plotting quality score parameters
+
+With the ShortRead package we can easily print a text summary of our data quality scores by converting the quality strings from before to a numeric format.
+
+```{R}
+numqscores = as(qscores, "matrix") # converts to numeric scores automatically
+
+avgscores = apply(numqscores, 1, mean, na.rm=TRUE) #apply the function mean() across all rows (argument '1') of the matrix and ignore "NA" values
+
+```
+
+For this kind of data we expect quality scores to range from 7-15 on average. It is a non-linear scale so score of 10 means an average error rate of <10% while a score of 20 means an average error rate of <1%. So a 7-15 range means ~85-95% accuracy.
+
+Plot the quality score distributions.
+
+```{R}
+avgscores = as.data.frame(avgscores)
+colnames(avgscores) #need the column name for ggplot
+ggplot(avgscores) +
+  geom_histogram(aes(x=avgscores), binwidth=0.2) +
+  theme_linedraw() +
+  xlab('Quality Score') +
+  ggtitle('Per Read Average Quality')
+  
+```
+
+
+# Homework:
+
+Create a new blog post covering the new coding we did today with the ShortRead library and our *fastq* data. 
+
+Then, write some code to merge our data tables on read length and average quality (HINT: use cbind(widths, avgscores)). Then create a plot showing the relationship (if any) of read length and mean read quality. Consider plots other than scatterplots and consider adding a regression line.
+
+```{R}
+mdata = cbind(widths, avgscores)
+```
+
+
+
+# [Home](https://devbioinformatics.org)
+
