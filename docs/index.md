@@ -56,7 +56,7 @@ Other classification methods
 
 <b> Section 3: High Performance Computing </b>
 
-<a href='section3/intro_hpc.Rmd'> Setting up on the HPC </a>
+<a href='section3/intro_hpc.html'> Setting up on the HPC </a>
 
 Project Organization
 

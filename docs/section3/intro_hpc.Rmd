@@ -115,6 +115,8 @@ https://trace.ncbi.nlm.nih.gov/Traces/sra/?study=SRP247673
 mkdir data
 cd data
 fastq-dump SRR#######
+cd ..
+
 ```
 
 # Homework
