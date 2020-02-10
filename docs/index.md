@@ -50,15 +50,19 @@ Data Manipulation with R and dplyr
 
 <a href='section2/read_fastq.html'> R for DNA sequence data: fastq </a>
 
-<b> Section 3: Project Management and Git </b>
+BLAST
 
-Setting up Git repositories
+Other classification methods
+
+<b> Section 3: High Performance Computing </b>
+
+<a href='section3/intro_hpc.Rmd'> Setting up on the HPC </a>
 
 Project Organization
 
-<b> Section 3: Reproducible Analyses </b>
+<b> Section 4: Reproducible Analyses </b>
 
-<b> Section 4: HPC </b>
+
 
 
 
