@@ -27,7 +27,7 @@ Today we will:
 
 # Logging In
 
-[SCC Open OnDemand](scc-ondemand.bu.edu/) *Enter cluster username and password*
+[SCC Open OnDemand](https://scc-ondemand.bu.edu/) *Enter cluster username and password*
 
 Then in the top tabs: "Interactive Sessions" -> "RStudio Server". That will take you to a page that requires information about your session.
 
@@ -123,9 +123,7 @@ cd ..
 
 For your blog this week:
 
-1) Recreate the graphs for read length and quality from last week on one of the SRA files from the eDNA data.
-
-2) 
+1) Working on the Cluster, recreate the graphs for read length and quality from last week on one of the SRA files from the eDNA data.
 
 
 [Home](bio332.devbioinformatics.org)
