@@ -1,0 +1,195 @@
+---
+title: "BLAST nucleotide sequence search in R"
+author: "Prof. Harbert"
+date: "Section 2: Part 2"
+output: 
+  html_document:
+    theme: united
+    highlight: tango
+    df_print: paged
+    toc: true
+    toc_float: true
+    toc_depth: 4
+  
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Goals
+
++ Perform BLAST searches in R using rBLAST.
++ Preliminary visualization of results data.
+
+# Log in:
+
+[scc-ondemand.bu.edu](https://scc-ondemand.bu.edu)
+
+# BLAST Analysis
+
+## Step 1: Load libraries
+
+Create a new R script and load the following libraries:
+
+```{R, message=F}
+library(rBLAST)
+library(Biostrings)
+library(taxonomizr)
+library(ggplot2)
+library(ShortRead)
+library(dplyr)
+library(stringi)
+library(forcats)
+```
+
+Then make sure to move to your current user directory in the shared project space if needed:
+
+```{R, eval=F}
+setwd('/projectnb/ct-shbioinf/yourusername')
+```
+
+IF any of these libraries fail to load, troubleshoot their installation.
+
+You *might* need:
+
+```{R, eval=F}
+devtools::install_github("mhahsler/rBLAST")
+```
+
+
+## Step 2: Configure access to BLAST and sratoolkit
+
+For some reason our RStudio sessions do not access the software that was loaded with our module request. Add these lines to your script to fix that:
+
+```{R}
+
+#fix RStudio PATH issues for blast+ and sratoolkit
+Sys.setenv(PATH=paste(Sys.getenv("PATH"), "/share/pkg.7/blast+/2.7.1/install/bin", sep=":"))
+Sys.setenv(PATH=paste(Sys.getenv("PATH"), "/share/pkg.7/sratoolkit/2.9.2/install/bin/", sep=":"))
+
+```
+
+## Step 3: Read fastq file from SRA
+
+```{R}
+# Download SRA File:
+srr=c('SRR11043492')
+system(paste('fastq-dump', srr, sep=' '))
+
+```
+
+Read the new fastq file:
+
+```{R}
+dna = readFastq('.', pattern=srr)
+
+# parse DNA sequences
+reads = sread(dna, id=id(dna))
+# parse quality scores
+qscores = quality(dna)
+```
+
+Now, here you could add your code to create plots of the read length and quality score histograms.
+
+
+## Step 4: Access BLAST Database
+
+Your instructor has set up a blast database using the [NCBI nucleotide database](https://www.ncbi.nlm.nih.gov/nuccore) by running the following in the terminal: (DO NOT DO THIS YOURSELVES, THIS IS FOR DEMONSTRATION ONLY)
+
+```{bash, eval=F}
+# the code below runs for ~2 hrs
+
+cd /projectnb/ct-shbioinf/data
+wget ftp://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/nt.gz
+gunzip nt.gz 
+
+makeblastdb -in nt.fa -dbtype nucl -title nt
+
+
+```
+
+The 'nt' database is the same one that you access if you use the [online blast portal](https://blast.ncbi.nlm.nih.gov/Blast.cgi?PROGRAM=blastn&PAGE_TYPE=BlastSearch&LINK_LOC=blasthome).
+
+
+### Accessing the built database
+
+```{R}
+# rBLAST function for connecting to the database
+bl <- blast(db="/projectnb/ct-shbioinf/blast/nt.fa")
+```
+
+## Step 5: Run BLAST search
+
+```{R}
+cl <- predict(bl, reads, BLAST_args = '-num_threads 12 -evalue 1e-100')
+accid = as.character(cl$SubjectID) # accession IDs of BLAST hits
+
+```
+
+The object 'cl' that is returned is a table of all of the hits that the blast algorithm found for every read. We put the SubjectID column in it's own object called 'accid' so we can search for taxonomic classifications of each hit.
+
+## Step 6: Search NCBI Taxonomy
+
+```{R}
+#load the taxonomy database files 'nodes' and 'names'
+taxaNodes<-read.nodes.sql("/projectnb/ct-shbioinf/taxonomy/data/nodes.dmp")
+taxaNames<-read.names.sql("/projectnb/ct-shbioinf/taxonomy/data/names.dmp")
+
+# Search the taxonomy by accession ID #
+
+# takes accession number and gets the taxonomic ID
+ids<-accessionToTaxa(accid,'/projectnb/ct-shbioinf/taxonomy/data/accessionTaxa.sql')
+
+# displays the taxonomic names from each ID #
+taxlist=getTaxonomy(ids, taxaNodes, taxaNames)
+
+# Merge BLAST hits and taxonomy of each
+cltax=cbind(cl,taxlist)
+
+```
+
+## Step 7: Visualize top hits
+
+The next step, to visualize the top matches to the unknown SRA sequences, is challenging. We will take one simple approach here to filter reads, but that may not be the best way to deal with these. This will be explored in future weeks.
+
+First, filter the hits table. This part uses some odd R syntax from the dplyr package. Spend some time understanding what's going on in the block below:
+
+```{R}
+cltop = cltax %>% 
+  group_by(QueryID) %>% 
+  top_n(n=1, wt=Bits)
+
+```
+Then, visualize:
+
+```{R}
+(ggplot(data=cltop) +
+    geom_bar(aes(x=fct_infreq(genus))) +
+    theme_minimal() +
+    theme(    
+      axis.text.x  = element_text(angle = 45, hjust=1)
+      ) +
+    xlab('')
+
+  )
+```
+
+# Homework:
+
+Write a single R file that performs the following:
+
+1) Load all libraries required
+
+2) Download SRA data from the eDNA experimental data
+
+3) Plot read length and average quality score
+
+4) Perform blast search
+
+5) Summarize top hits in a graph.
+
+Post code to your blog for the week along with images of the three graphs.
+
+[home](https://devbioinformatics/bio332)

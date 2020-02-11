@@ -50,7 +50,7 @@ Data Manipulation with R and dplyr
 
 <a href='section2/read_fastq.html'> R for DNA sequence data: fastq </a>
 
-BLAST
+<a href='section2/rBLAST.html'> BLAST in R </a>
 
 Other classification methods
 
