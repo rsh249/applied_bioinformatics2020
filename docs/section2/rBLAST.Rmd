@@ -33,7 +33,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Create a new R script and load the following libraries:
 
-```{R, message=F, echo=F}
+```{R, message=F, echo=F, warnings=F}
 library(rBLAST)
 library(Biostrings)
 library(taxonomizr)
@@ -79,7 +79,7 @@ Pick one of the "SRR####" ID numbers and paste it in the code below:
 
 ```{R}
 # Download SRA File:
-srr=c('SRR11043472')
+srr=c('SRR11043497')
 system(paste('fastq-dump', srr, sep=' '))
 
 ```
