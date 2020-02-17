@@ -104,13 +104,7 @@ Your instructor has set up a blast database using the [NCBI nucleotide database]
 
 ```{bash, eval=F}
 # the code below runs for ~2 hrs
-
-cd /projectnb/ct-shbioinf/data
-wget ftp://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/nt.gz
-gunzip nt.gz 
-
-makeblastdb -in nt.fa -dbtype nucl -title nt
-
+cat /projectnb/ct-shbioinf/rharbert/mask_blastdb
 
 ```
 

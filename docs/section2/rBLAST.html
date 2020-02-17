@@ -359,12 +359,7 @@ qscores =<span class="st"> </span><span class="kw">quality</span>(dna)</code></p
 <h2>Step 4: Access BLAST Database</h2>
 <p>Your instructor has set up a blast database using the <a href="https://www.ncbi.nlm.nih.gov/nuccore">NCBI nucleotide database</a> by running the following in the terminal: (DO NOT DO THIS YOURSELVES, THIS IS FOR DEMONSTRATION ONLY)</p>
 <div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="co"># the code below runs for ~2 hrs</span>
-
-<span class="bu">cd</span> /projectnb/ct-shbioinf/data
-<span class="fu">wget</span> ftp://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/nt.gz
-<span class="fu">gunzip</span> nt.gz 
-
-<span class="ex">makeblastdb</span> -in nt.fa -dbtype nucl -title nt</code></pre></div>
+<span class="fu">cat</span> /projectnb/ct-shbioinf/rharbert/mask_blastdb</code></pre></div>
 <p>The ‘nt’ database is the same one that you access if you use the <a href="https://blast.ncbi.nlm.nih.gov/Blast.cgi?PROGRAM=blastn&amp;PAGE_TYPE=BlastSearch&amp;LINK_LOC=blasthome">online blast portal</a>.</p>
 <div id="accessing-the-built-database" class="section level3">
 <h3>Accessing the built database</h3>
