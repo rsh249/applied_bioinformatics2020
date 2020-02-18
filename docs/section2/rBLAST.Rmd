@@ -33,7 +33,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 Create a new R script and load the following libraries:
 
-```{R, message=F, echo=F, warnings=F}
+```{R, message=F, echo=T, warnings=F}
 library(rBLAST)
 library(Biostrings)
 library(taxonomizr)

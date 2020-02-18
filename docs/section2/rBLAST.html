@@ -326,6 +326,14 @@ div.tocify {
 <div id="step-1-load-libraries" class="section level2">
 <h2>Step 1: Load libraries</h2>
 <p>Create a new R script and load the following libraries:</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(rBLAST)
+<span class="kw">library</span>(Biostrings)
+<span class="kw">library</span>(taxonomizr)
+<span class="kw">library</span>(ggplot2)
+<span class="kw">library</span>(ShortRead)
+<span class="kw">library</span>(dplyr)
+<span class="kw">library</span>(stringi)
+<span class="kw">library</span>(forcats)</code></pre></div>
 <p>Then make sure to move to your current user directory in the shared project space if needed:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">setwd</span>(<span class="st">'/projectnb/ct-shbioinf/yourusername'</span>)</code></pre></div>
 <p>IF any of these libraries fail to load, troubleshoot their installation.</p>
