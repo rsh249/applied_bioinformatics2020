@@ -66,8 +66,8 @@ For some reason our RStudio sessions do not access the software that was loaded 
 ```{R}
 
 #fix RStudio PATH issues for blast+ and sratoolkit
-Sys.setenv(PATH=paste(Sys.getenv("PATH"), "/share/pkg.7/blast+/2.7.1/install/bin", sep=":"))
-Sys.setenv(PATH=paste(Sys.getenv("PATH"), "/share/pkg.7/sratoolkit/2.9.2/install/bin/", sep=":"))
+#Sys.setenv(PATH=paste(Sys.getenv("PATH"), "/share/pkg.7/blast+/2.7.1/install/bin", sep=":"))
+#Sys.setenv(PATH=paste(Sys.getenv("PATH"), "/share/pkg.7/sratoolkit/2.9.2/install/bin/", sep=":"))
 
 ```
 
@@ -115,7 +115,7 @@ The 'nt' database is the same one that you access if you use the [online blast p
 
 ```{R}
 # rBLAST function for connecting to the database
-bl <- blast(db="/projectnb/ct-shbioinf/blast/nt.fa")
+bl <- blast(db="/projectnb/ct-shbioinf/blast/nt.fa", type='blastn')
 ```
 
 ## Step 5: Run BLAST search

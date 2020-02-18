@@ -344,8 +344,8 @@ div.tocify {
 <h2>Step 2: Configure access to BLAST and sratoolkit</h2>
 <p>For some reason our RStudio sessions do not access the software that was loaded with our module request. Add these lines to your script to fix that:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#fix RStudio PATH issues for blast+ and sratoolkit</span>
-<span class="kw">Sys.setenv</span>(<span class="dt">PATH=</span><span class="kw">paste</span>(<span class="kw">Sys.getenv</span>(<span class="st">&quot;PATH&quot;</span>), <span class="st">&quot;/share/pkg.7/blast+/2.7.1/install/bin&quot;</span>, <span class="dt">sep=</span><span class="st">&quot;:&quot;</span>))
-<span class="kw">Sys.setenv</span>(<span class="dt">PATH=</span><span class="kw">paste</span>(<span class="kw">Sys.getenv</span>(<span class="st">&quot;PATH&quot;</span>), <span class="st">&quot;/share/pkg.7/sratoolkit/2.9.2/install/bin/&quot;</span>, <span class="dt">sep=</span><span class="st">&quot;:&quot;</span>))</code></pre></div>
+<span class="co">#Sys.setenv(PATH=paste(Sys.getenv(&quot;PATH&quot;), &quot;/share/pkg.7/blast+/2.7.1/install/bin&quot;, sep=&quot;:&quot;))</span>
+<span class="co">#Sys.setenv(PATH=paste(Sys.getenv(&quot;PATH&quot;), &quot;/share/pkg.7/sratoolkit/2.9.2/install/bin/&quot;, sep=&quot;:&quot;))</span></code></pre></div>
 </div>
 <div id="step-3-read-fastq-file-from-sra" class="section level2">
 <h2>Step 3: Read fastq file from SRA</h2>
@@ -372,7 +372,7 @@ qscores =<span class="st"> </span><span class="kw">quality</span>(dna)</code></p
 <div id="accessing-the-built-database" class="section level3">
 <h3>Accessing the built database</h3>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># rBLAST function for connecting to the database</span>
-bl &lt;-<span class="st"> </span><span class="kw">blast</span>(<span class="dt">db=</span><span class="st">&quot;/projectnb/ct-shbioinf/blast/nt.fa&quot;</span>)</code></pre></div>
+bl &lt;-<span class="st"> </span><span class="kw">blast</span>(<span class="dt">db=</span><span class="st">&quot;/projectnb/ct-shbioinf/blast/nt.fa&quot;</span>, <span class="dt">type=</span><span class="st">'blastn'</span>)</code></pre></div>
 </div>
 </div>
 <div id="step-5-run-blast-search" class="section level2">
