@@ -58,20 +58,7 @@ You *might* need:
 devtools::install_github("mhahsler/rBLAST")
 ```
 
-
-## Step 2: Configure access to BLAST and sratoolkit
-
-For some reason our RStudio sessions do not access the software that was loaded with our module request. Add these lines to your script to fix that:
-
-```{R}
-
-#fix RStudio PATH issues for blast+ and sratoolkit
-#Sys.setenv(PATH=paste(Sys.getenv("PATH"), "/share/pkg.7/blast+/2.7.1/install/bin", sep=":"))
-#Sys.setenv(PATH=paste(Sys.getenv("PATH"), "/share/pkg.7/sratoolkit/2.9.2/install/bin/", sep=":"))
-
-```
-
-## Step 3: Read fastq file from SRA
+## Step 2: Read fastq file from SRA
 
 Look at the [list of eDNA samples](https://www.ncbi.nlm.nih.gov/Traces/study/?query_key=4&WebEnv=NCID_1_97008579_130.14.22.33_5555_1581554983_1331705789_0MetA0_S_HStore&o=acc_s%3Aa)
 
@@ -98,13 +85,13 @@ qscores = quality(dna)
 Now, here you could add your code to create plots of the read length and quality score histograms.
 
 
-## Step 4: Access BLAST Database
+## Step 3: Access BLAST Database
 
 Your instructor has set up a blast database using the [NCBI nucleotide database](https://www.ncbi.nlm.nih.gov/nuccore) by running the following in the terminal: (DO NOT DO THIS YOURSELVES, THIS IS FOR DEMONSTRATION ONLY)
 
-```{bash, eval=F}
+```{bash, eval=T, echo=F}
 # the code below runs for ~2 hrs
-cat /projectnb/ct-shbioinf/rharbert/mask_blastdb
+cat /projectnb/ct-shbioinf/rharbert/blast_maintenance/make_blastdb
 
 ```
 
@@ -118,7 +105,7 @@ The 'nt' database is the same one that you access if you use the [online blast p
 bl <- blast(db="/projectnb/ct-shbioinf/blast/nt.fa", type='blastn')
 ```
 
-## Step 5: Run BLAST search
+## Step 4: Run BLAST search
 
 ```{R}
 cl <- predict(bl, reads, BLAST_args = '-num_threads 12 -evalue 1e-100')
@@ -128,7 +115,7 @@ accid = as.character(cl$SubjectID) # accession IDs of BLAST hits
 
 The object 'cl' that is returned is a table of all of the hits that the blast algorithm found for every read. We put the SubjectID column in it's own object called 'accid' so we can search for taxonomic classifications of each hit.
 
-## Step 6: Search NCBI Taxonomy
+## Step 5: Search NCBI Taxonomy
 
 ```{R}
 #load the taxonomy database files 'nodes' and 'names'
@@ -148,7 +135,7 @@ cltax=cbind(cl,taxlist)
 
 ```
 
-## Step 7: Visualize top hits
+## Step 6: Visualize top hits
 
 The next step, to visualize the top matches to the unknown SRA sequences, is challenging. We will take one simple approach here to filter reads, but that may not be the best way to deal with these. This will be explored in future weeks.
 

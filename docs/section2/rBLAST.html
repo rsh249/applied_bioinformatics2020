@@ -340,15 +340,8 @@ div.tocify {
 <p>You <em>might</em> need:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">devtools<span class="op">::</span><span class="kw">install_github</span>(<span class="st">&quot;mhahsler/rBLAST&quot;</span>)</code></pre></div>
 </div>
-<div id="step-2-configure-access-to-blast-and-sratoolkit" class="section level2">
-<h2>Step 2: Configure access to BLAST and sratoolkit</h2>
-<p>For some reason our RStudio sessions do not access the software that was loaded with our module request. Add these lines to your script to fix that:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#fix RStudio PATH issues for blast+ and sratoolkit</span>
-<span class="co">#Sys.setenv(PATH=paste(Sys.getenv(&quot;PATH&quot;), &quot;/share/pkg.7/blast+/2.7.1/install/bin&quot;, sep=&quot;:&quot;))</span>
-<span class="co">#Sys.setenv(PATH=paste(Sys.getenv(&quot;PATH&quot;), &quot;/share/pkg.7/sratoolkit/2.9.2/install/bin/&quot;, sep=&quot;:&quot;))</span></code></pre></div>
-</div>
-<div id="step-3-read-fastq-file-from-sra" class="section level2">
-<h2>Step 3: Read fastq file from SRA</h2>
+<div id="step-2-read-fastq-file-from-sra" class="section level2">
+<h2>Step 2: Read fastq file from SRA</h2>
 <p>Look at the <a href="https://www.ncbi.nlm.nih.gov/Traces/study/?query_key=4&amp;WebEnv=NCID_1_97008579_130.14.22.33_5555_1581554983_1331705789_0MetA0_S_HStore&amp;o=acc_s%3Aa">list of eDNA samples</a></p>
 <p>Pick one of the “SRR####” ID numbers and paste it in the code below:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Download SRA File:</span>
@@ -363,11 +356,38 @@ reads =<span class="st"> </span><span class="kw">sread</span>(dna, <span class="
 qscores =<span class="st"> </span><span class="kw">quality</span>(dna)</code></pre></div>
 <p>Now, here you could add your code to create plots of the read length and quality score histograms.</p>
 </div>
-<div id="step-4-access-blast-database" class="section level2">
-<h2>Step 4: Access BLAST Database</h2>
+<div id="step-3-access-blast-database" class="section level2">
+<h2>Step 3: Access BLAST Database</h2>
 <p>Your instructor has set up a blast database using the <a href="https://www.ncbi.nlm.nih.gov/nuccore">NCBI nucleotide database</a> by running the following in the terminal: (DO NOT DO THIS YOURSELVES, THIS IS FOR DEMONSTRATION ONLY)</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="co"># the code below runs for ~2 hrs</span>
-<span class="fu">cat</span> /projectnb/ct-shbioinf/rharbert/mask_blastdb</code></pre></div>
+<pre><code>## #!/bin/sh -l
+## #
+## #Number of cores requested
+## #$ -pe omp 1
+## 
+## #Give the name to the job
+## #$ -N dustmasker
+## 
+## #Send an email when the job is finished (or aborted)
+## #$ -m ae
+## 
+## #Join the error and output file
+## #$ -j y
+## 
+## 
+## # Set the runtime limit (default 12 hours):
+## #$ -l h_rt=36:00:00
+## 
+## # Specify your project
+## #$ -P ct-shbioinf
+## 
+## module load blast+
+## 
+## cd /projectnb/ct-shbioinf/data
+## wget ftp://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/nt.gz
+## gunzip nt.gz 
+## 
+## #make unmasked database
+## makeblastdb -in nt.fa -dbtype nucl -title nt</code></pre>
 <p>The ‘nt’ database is the same one that you access if you use the <a href="https://blast.ncbi.nlm.nih.gov/Blast.cgi?PROGRAM=blastn&amp;PAGE_TYPE=BlastSearch&amp;LINK_LOC=blasthome">online blast portal</a>.</p>
 <div id="accessing-the-built-database" class="section level3">
 <h3>Accessing the built database</h3>
@@ -375,14 +395,14 @@ qscores =<span class="st"> </span><span class="kw">quality</span>(dna)</code></p
 bl &lt;-<span class="st"> </span><span class="kw">blast</span>(<span class="dt">db=</span><span class="st">&quot;/projectnb/ct-shbioinf/blast/nt.fa&quot;</span>, <span class="dt">type=</span><span class="st">'blastn'</span>)</code></pre></div>
 </div>
 </div>
-<div id="step-5-run-blast-search" class="section level2">
-<h2>Step 5: Run BLAST search</h2>
+<div id="step-4-run-blast-search" class="section level2">
+<h2>Step 4: Run BLAST search</h2>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cl &lt;-<span class="st"> </span><span class="kw">predict</span>(bl, reads, <span class="dt">BLAST_args =</span> <span class="st">'-num_threads 12 -evalue 1e-100'</span>)
 accid =<span class="st"> </span><span class="kw">as.character</span>(cl<span class="op">$</span>SubjectID) <span class="co"># accession IDs of BLAST hits</span></code></pre></div>
 <p>The object ‘cl’ that is returned is a table of all of the hits that the blast algorithm found for every read. We put the SubjectID column in it’s own object called ‘accid’ so we can search for taxonomic classifications of each hit.</p>
 </div>
-<div id="step-6-search-ncbi-taxonomy" class="section level2">
-<h2>Step 6: Search NCBI Taxonomy</h2>
+<div id="step-5-search-ncbi-taxonomy" class="section level2">
+<h2>Step 5: Search NCBI Taxonomy</h2>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#load the taxonomy database files 'nodes' and 'names'</span>
 taxaNodes&lt;-<span class="kw">read.nodes.sql</span>(<span class="st">&quot;/projectnb/ct-shbioinf/taxonomy/data/nodes.dmp&quot;</span>)</code></pre></div>
 <pre><code>## nameNode.sqlite already contains table nodes. Delete file or set overwrite=TRUE to reload</code></pre>
@@ -399,8 +419,8 @@ taxlist=<span class="kw">getTaxonomy</span>(ids, taxaNodes, taxaNames)
 <span class="co"># Merge BLAST hits and taxonomy of each</span>
 cltax=<span class="kw">cbind</span>(cl,taxlist)</code></pre></div>
 </div>
-<div id="step-7-visualize-top-hits" class="section level2">
-<h2>Step 7: Visualize top hits</h2>
+<div id="step-6-visualize-top-hits" class="section level2">
+<h2>Step 6: Visualize top hits</h2>
 <p>The next step, to visualize the top matches to the unknown SRA sequences, is challenging. We will take one simple approach here to filter reads, but that may not be the best way to deal with these. This will be explored in future weeks.</p>
 <p>First, filter the hits table. This part uses some odd R syntax from the dplyr package. Spend some time understanding what’s going on in the block below:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cltop =<span class="st"> </span>cltax <span class="op">%&gt;%</span><span class="st"> </span>
