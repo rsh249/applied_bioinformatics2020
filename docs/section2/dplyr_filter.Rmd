@@ -1,0 +1,199 @@
+---
+title: "Data Manipulation with *dplyr*"
+author: "Prof. Harbert"
+date: "Section 2: Part 3"
+output: 
+  html_document:
+    theme: united
+    highlight: tango
+    df_print: paged
+    toc: true
+    toc_float: true
+    toc_depth: 4
+  
+---
+
+# Goals
+
++ Write code to filter BLAST hits (e.g., E-value maximum)
++ Find the best match for each sequence read
++ Summarize top hits for different taxonomic levels
++ Find lowest common ancestor for a set of *top* hits
+
+# Data Manipulation with 'dplyr' {.tabset .tabset-fade .tabset-pills}
+
+## Resources
+
+[Tidyverse dplyr tutorial](https://dplyr.tidyverse.org/)
+
+[Data Carpentry dplyr](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=2ahUKEwj3wYePm-nnAhXKmeAKHUmkDkAQFjAAegQIAhAB&url=https%3A%2F%2Fdatacarpentry.org%2FR-genomics%2F04-dplyr.html&usg=AOvVaw1vyTylK2tLU728FSZbYHAR)
+
+[Operations Flow Chart]()
+
+## Example Problem 
+
+Working with a (small) nonsense data table:
+
+```{R}
+stuff=read.table('https://zenodo.org/record/3685211/files/demo.tab?download=1')
+#modify a bit
+stuff <- transform(stuff, x = sort(x) )
+stuff <- transform(stuff, sub = sample(sub) )
+
+head(stuff)
+```
+
+How could we write code to count the number of values of "red" in the *sub* column for each category in the *gp* column? Or how could we find the maximum value of *x* for each *gp*?
+
+In regular R code this might look something like: (!!*You do not need to know this code*!!)
+
+```{R, eval=F}
+stuff.a = stuff[which(stuff$gp=='a'),]
+stuff.b = stuff[which(stuff$gp=='b'),]
+stuff.c = stuff[which(stuff$gp=='c'),]
+
+# max(stuff$x)
+max(stuff.a$x, na.rm=T)
+max(stuff.b$x, na.rm=T)
+max(stuff.c$x, na.rm=T)
+
+# count subgroups
+nrow(stuff.a[which(stuff.a$sub=='green'),])
+nrow(stuff.a[which(stuff.a$sub=='blue'),])
+nrow(stuff.a[which(stuff.a$sub=='red'),])
+
+nrow(stuff.b[which(stuff.a$sub=='green'),])
+nrow(stuff.b[which(stuff.a$sub=='blue'),])
+nrow(stuff.b[which(stuff.a$sub=='red'),])
+
+```
+
+## Solution: 'dplyr'
+
+```{R}
+library(dplyr)
+# max x
+stuff %>%
+  group_by(gp) %>%
+  summarize(max.x=max(x))
+# count subgroups
+stuff %>% 
+  group_by(gp, sub) %>%
+  summarize(count=n())
+
+```
+
+# Work with BLAST Hits {.tabset .tabset-fade .tabset-pills}
+
+## Get Data
+
+The full BLAST results file from an unfiltered (E < 1e-50) search of the largest eDNA sequence file in our project so far ([SRR11043492](https://trace.ncbi.nlm.nih.gov/Traces/sra?run=SRR11043492)). This required ~20 hours of BLAST compute time to run so we will work with the output table.
+
+```{R, eval=F}
+download.file('https://zenodo.org/record/3686052/files/blasthits2.tab.gz?download=1',overwrite=T, destfile = 'blasthits2.tab.gz')
+system('gunzip blasthits2.tab.gz')
+```
+
+And then read the top hits file into your R session.
+
+```{R}
+#read BLAST hits file: 
+blasthits = read.table('blasthits2.tab')
+dim(blasthits)
+```
+
+That's a very big table (a fraction of the unfiltered results file). We need tools that can work efficiently to process this table to return the matches that want in a form that we can use for downstream data visualization or analysis.
+
+## dplyr: select columns and filter
+
+The dplyr tools can easily slice out columns or rows given certain criteria (e.g., the column names or the values for a parameter). 
+
+This table is very large and maybe we don't want all of the columns.
+
+```{R}
+colnames(blasthits)
+```
+
+But we do not really need all of these columns. 
+
+Trim the table to only use QueryID, SubjectID, Perc.Ident, Alignment.Length, E, Bits, family, genus.
+
+```{R}
+sele.hits = select(blasthits, QueryID, SubjectID, Perc.Ident, Alignment.Length, E, Bits, family, genus)
+colnames(sele.hits)
+```
+
+OR Filter the table by match criteria (e.g., E, Bits, or Perc.Ident)
+
+```{R}
+top.hits = filter(blasthits, Bits>350)
+nrow(top.hits)
+nrow(blasthits)
+```
+
+## dplyr: group and summarize
+
+dplyr makes it easier (than the example earlier) to calculate summary stats for groups and subgroups within a table. Just a few lines of dplyr code can fix dozens of lines of base R code that your instructor wrote as a grad student.
+
+For example, we might want to know the number of times that a particular Genus is identified in the BLAST hits. Which might look like:
+
+```{R}
+groupgen = group_by(blasthits, genus) 
+topgen = summarize(groupgen, count = n())
+head(arrange(topgen, desc(count))) # PRINT JUST THE HIGHEST COUNTS
+
+```
+
+For example, in the BLAST results we want to know what the top matches are for each sequence read. That can be accomplished by code like:
+
+```{R}
+groupbyread = group_by(blasthits, QueryID)
+topbygroup = filter(groupbyread, any(Bits>350))
+```
+
+
+
+## dplyr: pipe things together
+
+Perhaps the single greatest method in dplyr is the ability to link these operations together into command pipelines. This avoids intermediate objects that can clutter up your environment and also makes your code much more readable and easy to understand when sharing or debugging.
+
+This is accomplished with the pipe operator "%>%". The pipe is code that redirects the output of one command directly into the primary input of another.
+
+For example, the last example where we grouped by QueryID and then filtered by Bit score. Well, that could be done in a single line with:
+
+```{R}
+topbygroup = blasthits %>% group_by(QueryID) %>% filter(any(Bits>350))
+
+```
+
+There is not limit to the complexity of your pipe commands. If you wanted to take the filtered dataset above and go further to summarize the counts by genus that would look like:
+
+```{R}
+topgenera = blasthits %>% #start pipe by hooking it up to blasthits table
+  group_by(QueryID) %>% #Group on query ID
+  filter(any(Bits>500)) %>% #filter for Bit score
+  group_by(genus) %>% #redo grouping for genus column now
+  summarize(count=n()) %>% #summarize by counting rows in each genus 
+  arrange(desc(count))
+
+```
+
+That's still probably not the count we really want to show. Note that there are more hits to *Callitriche* in this table than there are reads in the dataset. We should get only the best match for each read.
+
+```{R}
+topgenera = blasthits %>% 
+  group_by(QueryID) %>% 
+  top_n(n=1, wt=E) %>% #top by E value this time
+  group_by(genus) %>% 
+  summarize(count=n()) %>% 
+  arrange(desc(count))
+
+topgenera
+
+```
+
+# Homework:
+
+Now try something on your own. Write a dplyr based pipeline (Use %>%) to filter for top hits in a different way using at least 3  commands. You could filter on several columns (e.g., Bits, E, Perc.Ident, ) and/or group by query ID or subject ID (or taxonomy!?). Use one of the other SRA files and/or your BLAST results from before.
+
+Post a blog showing your code, explaining your thought process and experimentation, and showing your output. 

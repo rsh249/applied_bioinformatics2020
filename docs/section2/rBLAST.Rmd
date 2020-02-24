@@ -60,7 +60,7 @@ devtools::install_github("mhahsler/rBLAST")
 
 ## Step 2: Read fastq file from SRA
 
-Look at the [list of eDNA samples](https://www.ncbi.nlm.nih.gov/Traces/study/?query_key=4&WebEnv=NCID_1_97008579_130.14.22.33_5555_1581554983_1331705789_0MetA0_S_HStore&o=acc_s%3Aa)
+Look at the [list of eDNA samples](https://www.ncbi.nlm.nih.gov/Traces/study/?acc=PRJNA605442%20&o=acc_s%3Aa)
 
 Pick one of the "SRR####" ID numbers and paste it in the code below:
 
