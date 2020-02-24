@@ -10,23 +10,18 @@ library(rBLAST)
 
 #devtools::install_github("mhahsler/rBLAST")
 
-setwd('/projectnb/ct-shbioinf')
-#fix RStudio PATH issues for blast+ and sratoolkit
-Sys.setenv(PATH=paste(Sys.getenv("PATH"), "/share/pkg.7/blast+/2.7.1/install/bin", sep=":"))
-Sys.setenv(PATH=paste(Sys.getenv("PATH"), "/share/pkg.7/sratoolkit/2.9.2/install/bin/", sep=":"))
-
 # Download SRA File:
-srr=c('SRR11043475')
-system(paste('fastq-dump', srr, sep=' '))
+#srr=c('SRR11043475')
+#system(paste('fastq-dump', srr, sep=' '))
 
 
 # Read taxonomy database
-taxaNodes<-read.nodes.sql("./taxonomy/data/nodes.dmp")
-taxaNames<-read.names.sql("./taxonomy/data/names.dmp")
+taxaNodes<-read.nodes.sql("/usr/share/data/taxonomizr/nodes.dmp")
+taxaNames<-read.names.sql("/usr/share/data/taxonomizr/names.dmp")
 
 
 # read fastq
-dna = readFastq('.', pattern=srr)
+dna = readFastq('/var/lib/minknow/data/Roche_pond_S1/Roche_pond_S1/20200218_2103_MN30146_ACE154_b4c6b55e/fastq_pass/barcode01', pattern=".fastq")
 reads = sread(dna, id=id(dna)) 
 qscores = quality(dna) 
 
@@ -66,14 +61,14 @@ DNAset=DNAStringSet(u.reads)
 
 
 ## blast
-bl <- blast(db="blast/nt.fa")
+bl <- blast(db="/usr/share/data/ncbi/nt/nt.fa")
 cl <- predict(bl, DNAset, BLAST_args = '-num_threads 12 -evalue 1e-100')
 accid = as.character(cl$SubjectID) # accession IDs of BLAST hits
 
 # Plot results
 
 #takes accession number and gets the taxonomic ID
-ids<-accessionToTaxa(accid, './taxonomy/data/accessionTaxa.sql')
+ids<-accessionToTaxa(accid, '/usr/share/data/taxonomizr/accessionTaxa.sql')
 #taxlist displays the taxonomic names from each ID #
 taxlist=getTaxonomy(ids, taxaNodes, taxaNames)
 
@@ -81,9 +76,8 @@ cltax=cbind(cl,taxlist)
 
 cltop = cltax %>% 
   group_by(QueryID) %>% 
-  top_n(10, Bits) %>%
-  filter(Bits>750) %>%
-  filter(Perc.Ident>85)
+  top_n(1, Bits) %>%
+  filter(Perc.Ident>85) 
 
 ggplot(cltop) + geom_density(aes(x=Alignment.Length))
 
