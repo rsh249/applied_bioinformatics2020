@@ -34,7 +34,7 @@ Learn more about the Oxford Nanopore technology <a href="https://nanoporetech.co
 
 ## Lecture Schedule
 
-<h3 id="S1"> Section 1: Intro to R Coding </h1>
+<h3 id="S1"> Section 1: Intro to R Coding </h3>
 
 <a href='section1/Rstudio_and_Git.html'> R Setup and Basics </a>
 
