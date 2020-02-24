@@ -52,15 +52,17 @@ Data Manipulation with R and dplyr
 
 <a href='section2/rBLAST.html'> BLAST in R </a>
 
+<a href='section2/dplyr_filter.html'> Filter BLAST hits with 'dplyr' </a>
+
 Other classification methods
 
 <b> Section 3: High Performance Computing </b>
 
 <a href='section3/intro_hpc.html'> Setting up on the HPC </a>
 
-Project Organization
-
 <b> Section 4: Reproducible Analyses </b>
+
+Project Organization
 
 
 
