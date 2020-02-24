@@ -44,9 +44,7 @@ Learn more about the Oxford Nanopore technology <a href="https://nanoporetech.co
 
 <a href='section1/R_ggplot.html'> Data Visualization </a>
 
-Data Manipulation with R and dplyr
-
-<b> Section 2: DNA Sequence Data in R </b>
+<h3 id="S2"> Section 2: DNA Sequence Data in R </h3>
 
 <a href='section2/read_fastq.html'> R for DNA sequence data: fastq </a>
 
@@ -56,11 +54,11 @@ Data Manipulation with R and dplyr
 
 Other classification methods
 
-<b> Section 3: High Performance Computing </b>
+<h3 id="S3"> Section 3: High Performance Computing </h3>
 
 <a href='section3/intro_hpc.html'> Setting up on the HPC </a>
 
-<b> Section 4: Reproducible Analyses </b>
+<h3 id="S4"> Section 4: Reproducible Analyses </h3>
 
 Project Organization
 
