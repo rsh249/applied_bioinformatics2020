@@ -1,0 +1,122 @@
+---
+title: "Scripting and Project Organization"
+author: "Prof. Harbert"
+date: "Section 3: Part 2"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# R Scripts {.tabset .tabset-fade .tabset-pills}
+
+## Scripting
+
+Up until this point you have been writing code much as it is demonstrated in class or lecture recordings. This kind of hands on, typing-as-you-go work is useful for learning the process of coding and for developing new analyses. However, this is generally not how we want to share our work.
+
+The goal of any analysis you write is reproducibility. The best way to tell about what you did in your code is to be able to show how it works. To this end, we will be developing our workflows from this point on as R scripts.
+
+R, and similar programming languages like Python, Perl, Julia, are interpretted languages. We write code that is sent to the R interpreter and executed/run. By writing out the series of commands that we need for an entire analysis in order in a single file we can provide the interpreter with ALL of the instructions at once. This list of instructions is called a script (as in: the interpreter is reading the script). 
+
+To write a script you must:
+
+1. Identify the problem
+2. Work out the code to solve that problem
+3. Write all the code into a single R Script file
+4. TEST your script (run from the beginning and check output).
+5. Tidy up your code to remove any unecessary lines
+
+
+## Anatomy of an R Script
+
+```{R, eval = F}
+#!/usr/bin/R
+
+# This is an R script that does math with two vectors and then makes a simple graph.
+
+# Define libraries required 
+library(ggplot2)
+
+# Set up or load data
+#  Vector 1
+v1 = seq(1, 10)
+# Vector 2
+v2 = seq(10, 100, by=10)
+
+
+# Do your stuff
+v3 = v2 * v1
+res = as.data.frame(cbind(v1, v2, v3))
+
+
+# Generate output files/figures
+plo = ggplot(data=res) +
+  geom_point(aes(x=v1, y=v3)) +
+  geom_smooth(aes(x=v1, y=v3)) 
+ggsave('plot1.pdf', plo)
+
+
+
+```
+
+## Code Checklist
+
+Make sure your code *works*
+
+Clean up your code
+
++ Code should be easy to read and understand.
++ Only include code and comments necessary. Remove anything else (e.g., notes taken during class, commented code that isn’t needed).
++ Remove extra/duplicate files. If you are working in Git with regular commits of intermediate drafts then you can always work back to an older version.
+   
+
+Make sure your code runs like you think it does
+
++ Code should run from the start of the file to the end of the file without problems. To make sure this is true:
+    + Clear the R environment by clicking on the broom icon on the Environment tab.
+    + Run the entire file by either clicking the Source button or using the Ctrl-Shift-Enter keyboard shortcut.
+
+Work with data files appropriately
+
+Code should run the same way regardless of which computer it is run on. In order to grade your code someone will need to run it on another computer. To make sure your code will work on another computer:
+
++ Do not use setwd()
++ Use relative paths, not absolute paths. E.g., use "data/mydata.csv" instead of "C:\Users\myuser\GitHub\classnotes\data\mydata.csv".
++ Make filenames in the code match the actual filenames exactly. 
++ DO NOT use spaces in filenames for anything, ever.
+
+
+## Challenge
+
+Outline (on the board or on paper) what you need to put in a script that downloads a fastq file from the SRA, examines read length and quality, performs a BLAST search, and summarizes the results as ggplot figures. 
+
+
+# Project organization {.tabset .tabset-fade .tabset-pills}
+
+For your course project you will need to [create a new Git repository](http://bio332.devbioinformatics.org/section1/Rstudio_and_Git.html). 
+
+For reproducibility a new project repository should be organized and clearly named. A suggested generic repository structure is:
+
+```{bash, eval=F}
+/repository_folder # enclosing folder where repository is rooted
+---- /scripts_folder # A folder to hold your code files/scripts
+---- /data # A place to put your data
+---- /figure # Where to write your figure/plots files
+---- /output # Put any other output files here
+---- README # A text file describing what your project does and provides examples on how to use it
+```
+
+Depending on the aims of your project code you may need to modify this basic structure.
+
+Review how to do this and practice making a new repository.
+
+
+
+[Home](https://devbioinformatics.org)
+
+
+*Material adapted from the [Data Carpentry for Biologists](http://datacarpentry.org/semester-biology/) course materials.
+

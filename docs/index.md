@@ -60,7 +60,7 @@ Other classification methods
 
 <h3 id="S4"> Section 4: Reproducible Analyses </h3>
 
-Project Organization
+<a href='section4/scripting.html'> R Scripts and Project Organization </a>
 
 
 
