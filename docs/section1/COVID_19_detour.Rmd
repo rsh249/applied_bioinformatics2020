@@ -1,0 +1,242 @@
+---
+title: "Data Visualization: COVID-19 Detour"
+author: "Prof. Harbert"
+date: "Part ???"
+output: 
+  html_document:
+    theme: united
+    highlight: tango
+    df_print: paged
+    toc: true
+    toc_float: true
+    toc_depth: 4
+  
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Disclaimer
+
+The author of this page is not an epidemiologist. All data visualizations presented here are for code demonstration purposes only and are not meant to be a substitute for public health information. For current information we recommend: [the JHU Coronavirus dashboard](https://coronavirus.jhu.edu/map.html) and [Nextstrain](https://nextstrain.org/ncov)
+
+# Data visualization: Coronavirus Data Trends
+
+Goals 
+
++ Practice using dplyr and 
++ Experiment with interactive graphics with plotly
++ Work on higher level graphics operations like multipanel plots and saving high quality image files.
++ Visualize current trends in US COVID-19 cases
+
+That's it. 
+
+# The Raw Data {.tabset .tabset-fade .tabset-pills}
+
+## Download GitHub Repo
+
+The raw data compiled by Johns Hopkins University Center for Systems Science and Engineering and used in online [dashboards](https://coronavirus.jhu.edu/map.html) tracking the virus spread are publicly available in a [GitHub repository](https://github.com/CSSEGISandData/COVID-19).
+
+We will clone the entire repository and access the data files within. 
+
+```{bash}
+rm -R COVID-19
+```
+
+```{R}
+system('git clone https://github.com/CSSEGISandData/COVID-19')
+list.files('COVID-19')
+```
+
+## Explore
+
+Inside this folder we have the current data from various government and international organizations tracking the spread of the Coronavirus. We will mostly use the 'csse_covid_19_data' which compiles the infection and death rates.
+
+```{R}
+list.files('COVID-19/csse_covid_19_data/csse_covid_19_time_series')
+```
+
+# Visualize {.tabset .tabset-fade .tabset-pills}
+
+## Read 
+
+Read case trends file:
+
+```{R}
+cases = read.csv('COVID-19/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv')
+colnames(cases)
+
+```
+
+Read death trends file:
+
+```{R}
+deaths = read.csv('COVID-19/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv')
+colnames(deaths)
+```
+
+These tables are organized with one column for each date that they have tracked data. The R packages dplyr and ggplot2 do not work with this formatting exacly. Instead we need to rearrange so that each row contains only one value for cases/deaths and information in other columns about the geography and date that value applies to.
+
+```{R}
+library(reshape2)
+cases_df = melt(cases, 
+               id.vars=c('Province.State', 'Country.Region', 'Lat', 'Long'), 
+               measure.vars = grep('X', colnames(cases), value=T)
+               )
+
+deaths_df = melt(deaths, 
+               id.vars=c('Province.State', 'Country.Region', 'Lat', 'Long'), 
+               measure.vars = grep('X', colnames(cases), value=T)
+               )
+
+```
+
+## Filter with dplyr
+
+How would you use dplyr to filter for cases (or deaths) by geography (country and state)?
+
+```{R}
+#Get data for US
+library(dplyr)
+library(tibble)
+cases_notnull = cases_df %>% 
+  group_by(Country.Region, variable) %>%
+  summarize(total_cases=sum(value))
+
+us_cases = cases_notnull %>% 
+  filter(Country.Region == 'US') 
+
+#Get data for US cases in Massachusetts
+ma_cases = cases_df %>% 
+  filter(Province.State == 'Massachusetts') %>%
+  group_by(Country.Region, variable) %>%
+  summarize(total_cases=sum(value))
+
+
+```
+
+## Visualize
+
+Plot US case trend
+
+```{R}
+library(ggplot2)
+
+ggplot(data=cases_notnull) +
+  geom_path(aes(x=variable, 
+                y=total_cases, 
+                group=Country.Region, 
+                col=Country.Region)
+            ) +
+  theme_minimal() +
+  theme(legend.position = 'none')
+  
+```
+
+And again, but this time on a log scale so we can see the smaller lines.
+
+```{R}
+ggplot(data=cases_notnull) +
+  geom_path(aes(x=variable, 
+                y=total_cases, 
+                group=Country.Region, 
+                col=Country.Region)
+            ) +
+  scale_y_log10() +
+  theme_minimal() +
+  theme(legend.position = 'none')
+```
+
+What about the cases in Massachusetts only?
+
+```{R}
+ggplot(ma_cases) +
+  geom_path(aes(x=variable, 
+                y=total_cases, 
+                group=Country.Region, 
+                col=Country.Region)
+            ) +
+  theme_minimal() +
+  theme(legend.position = 'none')
+```
+
+## Interactive Charts
+
+Try plotly:
+
+```{R}
+library(plotly)
+#create ggplot object
+g1 = ggplot(data=cases_notnull %>% ungroup()) +
+  geom_path(aes(x=variable, 
+                y=total_cases, 
+                group=Country.Region, 
+                col=Country.Region)
+            ) +
+  theme_minimal() +
+  theme(legend.position = 'none')
+
+#convert interactive plotly
+ggplotly()
+```
+
+
+plotly plot for MA cases only: 
+
+```{R}
+library(plotly)
+#create ggplot object
+g1 = ggplot(data=ma_cases %>% ungroup()) +
+  geom_path(aes(x=variable, 
+                y=total_cases, 
+                group=Country.Region, 
+                col=Country.Region)
+            ) +
+  theme_minimal() +
+  theme(legend.position = 'none')
+
+#convert interactive plotly
+ggplotly()
+```
+
+# Cumulative Infections Script
+
+The graphs above show trends in active infection cases over time. Below is a self contained experimental R script to generate cumulative infection tables and graphs.
+
+```{R}
+#!/usr/bin/R
+library(dplyr)
+library(tibble)
+library(ggplot2)
+library(reshape2)
+
+#get data
+system('git clone https://github.com/CSSEGISandData/COVID-19')
+
+#load cases, deaths, recovered data
+cases = read.csv('COVID-19/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv')
+
+cases_df = melt(cases, 
+               id.vars=c('Province.State', 'Country.Region', 'Lat', 'Long'), 
+               measure.vars = grep('X', colnames(cases), value=T)
+               )
+
+cases_notnull = cases_df %>%
+  group_by(Country.Region, variable) %>%
+  summarize(total_cases=sum(value))
+
+
+(g1 = ggplot(data=cases_notnull) +
+  geom_path(aes(x=variable, 
+                y=total_cases, 
+                group=Country.Region, 
+                col=Country.Region)
+            ) +
+    theme(legend.position = 'none')
+)
+
+  
+g1 + ylim(0,10000)
+
+```
