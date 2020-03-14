@@ -40,7 +40,7 @@ The raw data compiled by Johns Hopkins University Center for Systems Science and
 
 We will clone the entire repository and access the data files within. 
 
-```{bash}
+```{bash, message=F, echo=F}
 rm -R COVID-19
 ```
 
@@ -69,40 +69,50 @@ colnames(cases)
 
 ```
 
-Read death trends file:
+Read death trends file: (work with this later)
 
 ```{R}
 deaths = read.csv('COVID-19/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Deaths.csv')
-colnames(deaths)
 ```
+
+
+## Filter with dplyr
 
 These tables are organized with one column for each date that they have tracked data. The R packages dplyr and ggplot2 do not work with this formatting exacly. Instead we need to rearrange so that each row contains only one value for cases/deaths and information in other columns about the geography and date that value applies to.
 
+We also need to fix dates to an R compatible date format. With reshape2 and dplyr we can reorganize the data and convert date strings all at the same time:
+
 ```{R}
 library(reshape2)
+library(dplyr)
+library(tibble)
+library(stringr)
+
 cases_df = melt(cases, 
                id.vars=c('Province.State', 'Country.Region', 'Lat', 'Long'), 
                measure.vars = grep('X', colnames(cases), value=T)
-               )
+               ) %>% 
+  mutate(variable=str_replace(variable, "X", "")) %>%
+  mutate(variable=as.Date(variable, "%m.%d.%y"))
 
 deaths_df = melt(deaths, 
                id.vars=c('Province.State', 'Country.Region', 'Lat', 'Long'), 
                measure.vars = grep('X', colnames(cases), value=T)
-               )
+               ) %>% 
+  mutate(variable=str_replace(variable, "X", "")) %>%
+  mutate(variable=as.Date(variable, "%m.%d.%y"))
 
 ```
-
-## Filter with dplyr
 
 How would you use dplyr to filter for cases (or deaths) by geography (country and state)?
 
 ```{R}
-#Get data for US
-library(dplyr)
-library(tibble)
+#calculate running case total for each country by summing across state.province groups 
 cases_notnull = cases_df %>% 
   group_by(Country.Region, variable) %>%
-  summarize(total_cases=sum(value))
+  summarize(total_cases=sum(value)) 
+
+#Get data for US
 
 us_cases = cases_notnull %>% 
   filter(Country.Region == 'US') 
@@ -116,9 +126,9 @@ ma_cases = cases_df %>%
 
 ```
 
-## Visualize
+## Global Trends
 
-Plot US case trend
+Plot Global case trend
 
 ```{R}
 library(ggplot2)
@@ -137,6 +147,10 @@ ggplot(data=cases_notnull) +
 And again, but this time on a log scale so we can see the smaller lines.
 
 ```{R}
+# turn off scientific notation, show real numbers:
+options(scipen=999, digits=1) 
+
+#plot on log scale
 ggplot(data=cases_notnull) +
   geom_path(aes(x=variable, 
                 y=total_cases, 
@@ -147,6 +161,21 @@ ggplot(data=cases_notnull) +
   theme_minimal() +
   theme(legend.position = 'none')
 ```
+
+## US Trends
+
+```{R}
+ggplot(us_cases) +
+  geom_path(aes(x=variable, 
+                y=total_cases, 
+                group=Country.Region, 
+                col=Country.Region)
+            ) +
+  theme_minimal() +
+  theme(legend.position = 'none')
+```
+
+## MA Trends
 
 What about the cases in Massachusetts only?
 
@@ -161,44 +190,7 @@ ggplot(ma_cases) +
   theme(legend.position = 'none')
 ```
 
-## Interactive Charts
 
-Try plotly:
-
-```{R}
-library(plotly)
-#create ggplot object
-g1 = ggplot(data=cases_notnull %>% ungroup()) +
-  geom_path(aes(x=variable, 
-                y=total_cases, 
-                group=Country.Region, 
-                col=Country.Region)
-            ) +
-  theme_minimal() +
-  theme(legend.position = 'none')
-
-#convert interactive plotly
-ggplotly()
-```
-
-
-plotly plot for MA cases only: 
-
-```{R}
-library(plotly)
-#create ggplot object
-g1 = ggplot(data=ma_cases %>% ungroup()) +
-  geom_path(aes(x=variable, 
-                y=total_cases, 
-                group=Country.Region, 
-                col=Country.Region)
-            ) +
-  theme_minimal() +
-  theme(legend.position = 'none')
-
-#convert interactive plotly
-ggplotly()
-```
 
 # Cumulative Infections Script
 
@@ -210,6 +202,7 @@ library(dplyr)
 library(tibble)
 library(ggplot2)
 library(reshape2)
+library(stringr)
 
 #get data
 system('git clone https://github.com/CSSEGISandData/COVID-19')
@@ -220,23 +213,24 @@ cases = read.csv('COVID-19/csse_covid_19_data/csse_covid_19_time_series/time_ser
 cases_df = melt(cases, 
                id.vars=c('Province.State', 'Country.Region', 'Lat', 'Long'), 
                measure.vars = grep('X', colnames(cases), value=T)
-               )
+               ) %>% 
+  mutate(variable=str_replace(variable, "X", "")) %>%
+  mutate(variable=as.Date(variable, "%m.%d.%y"))
 
-cases_notnull = cases_df %>%
+cases_notnull = cases_df %>% 
   group_by(Country.Region, variable) %>%
-  summarize(total_cases=sum(value))
+  summarize(total_cases=sum(value)) 
 
-
-(g1 = ggplot(data=cases_notnull) +
+ggplot(data=cases_notnull) +
   geom_path(aes(x=variable, 
                 y=total_cases, 
                 group=Country.Region, 
                 col=Country.Region)
             ) +
-    theme(legend.position = 'none')
-)
+  theme_minimal() +
+  theme(legend.position = 'none') +
+  xlab('Date') +
+  ylab('Total Cases')
 
-  
-g1 + ylim(0,10000)
 
 ```
