@@ -374,16 +374,8 @@ div.tocify {
 <p>These tables are organized with one column for each date that they have tracked data. The R packages dplyr and ggplot2 do not work with this formatting exacly. Instead we need to rearrange so that each row contains only one value for cases/deaths and information in other columns about the geography and date that value applies to.</p>
 <p>We also need to fix dates to an R compatible date format. With reshape2 and dplyr we can reorganize the data and convert date strings all at the same time:</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(reshape2)
-<span class="kw">library</span>(dplyr)</code></pre></div>
-<pre><code>## 
-## Attaching package: 'dplyr'</code></pre>
-<pre><code>## The following objects are masked from 'package:stats':
-## 
-##     filter, lag</code></pre>
-<pre><code>## The following objects are masked from 'package:base':
-## 
-##     intersect, setdiff, setequal, union</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(tibble)
+<span class="kw">library</span>(dplyr)
+<span class="kw">library</span>(tibble)
 <span class="kw">library</span>(stringr)
 
 cases_df =<span class="st"> </span><span class="kw">melt</span>(cases, 
@@ -510,15 +502,8 @@ ma_plot</code></pre></div>
 <div id="multipanel-plots" class="section level1">
 <h1>Multipanel Plots</h1>
 <p>cowplot!</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(cowplot)</code></pre></div>
-<pre><code>## 
-## ********************************************************</code></pre>
-<pre><code>## Note: As of version 1.0.0, cowplot does not change the</code></pre>
-<pre><code>##   default ggplot2 theme anymore. To recover the previous</code></pre>
-<pre><code>##   behavior, execute:
-##   theme_set(theme_cowplot())</code></pre>
-<pre><code>## ********************************************************</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cowplot =<span class="st"> </span><span class="kw">plot_grid</span>(label_cou, state_plot, ma_plot, <span class="dt">ncol=</span><span class="dv">3</span>, <span class="dt">align =</span> <span class="st">'v'</span>, <span class="dt">labels=</span><span class="st">&quot;AUTO&quot;</span>)</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(cowplot)
+cowplot =<span class="st"> </span><span class="kw">plot_grid</span>(label_cou, state_plot, ma_plot, <span class="dt">ncol=</span><span class="dv">3</span>, <span class="dt">align =</span> <span class="st">'v'</span>, <span class="dt">labels=</span><span class="st">&quot;AUTO&quot;</span>)</code></pre></div>
 <pre><code>## Warning: Removed 124 rows containing missing values (geom_path).</code></pre>
 <pre><code>## Warning: Removed 55 rows containing missing values (geom_path).</code></pre>
 <pre><code>## Warning: Removed 1 rows containing missing values (geom_path).</code></pre>
@@ -528,10 +513,9 @@ ma_plot</code></pre></div>
 <div id="saving-plots" class="section level1">
 <h1>Saving Plots</h1>
 <p>Use ggsave() to create image files of your ggplot images.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">dir.create</span>(<span class="st">'figures'</span>)</code></pre></div>
-<pre><code>## Warning in dir.create(&quot;figures&quot;): 'figures' already exists</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggsave</span>(cowplot, <span class="dt">file=</span><span class="st">'figures/corona_fig.png'</span>, <span class="dt">height=</span><span class="dv">6</span>, <span class="dt">width=</span><span class="dv">12</span>, <span class="dt">units=</span><span class="st">'in'</span>, <span class="dt">dpi=</span><span class="dv">600</span>)</code></pre></div>
-<p>Which should look like <a href="'figures/corona_fig.png'">this</a></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">dir.create</span>(<span class="st">'figures'</span>, <span class="dt">showWarnings=</span>F)
+<span class="kw">ggsave</span>(cowplot, <span class="dt">file=</span><span class="st">'figures/corona_fig.png'</span>, <span class="dt">height=</span><span class="dv">6</span>, <span class="dt">width=</span><span class="dv">12</span>, <span class="dt">units=</span><span class="st">'in'</span>, <span class="dt">dpi=</span><span class="dv">600</span>)</code></pre></div>
+<p>Which should look like <a href="figures/corona_fig.png">this</a></p>
 </div>
 <div id="cumulative-infections-script" class="section level1">
 <h1>Cumulative Infections Script</h1>

@@ -82,7 +82,7 @@ These tables are organized with one column for each date that they have tracked 
 
 We also need to fix dates to an R compatible date format. With reshape2 and dplyr we can reorganize the data and convert date strings all at the same time:
 
-```{R}
+```{R, message=F}
 library(reshape2)
 library(dplyr)
 library(tibble)
@@ -133,7 +133,7 @@ ma_cases = us_cases %>%
 
 Plot Global case trend
 
-```{R}
+```{R, message=F}
 library(ggplot2)
 # turn off scientific notation, show real numbers:
 options(scipen=999, digits=1) 
@@ -239,7 +239,7 @@ ma_plot
 
 cowplot!
 
-```{R}
+```{R, message=F}
 library(cowplot)
 cowplot = plot_grid(label_cou, state_plot, ma_plot, ncol=3, align = 'v', labels="AUTO")
 cowplot
@@ -252,11 +252,11 @@ cowplot
 Use ggsave() to create image files of your ggplot images.
 
 ```{R}
-dir.create('figures')
+dir.create('figures', showWarnings=F)
 ggsave(cowplot, file='figures/corona_fig.png', height=6, width=12, units='in', dpi=600)
 ```
 
-Which should look like [this]('figures/corona_fig.png')
+Which should look like [this](figures/corona_fig.png)
 
 
 # Cumulative Infections Script
