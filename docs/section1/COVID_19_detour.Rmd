@@ -112,17 +112,20 @@ cases_notnull = cases_df %>%
   group_by(Country.Region, variable) %>%
   summarize(total_cases=sum(value)) 
 
-#Get data for US
-
-us_cases = cases_notnull %>% 
-  filter(Country.Region == 'US') 
-
-#Get data for US cases in Massachusetts
-ma_cases = cases_df %>% 
-  filter(Province.State == 'Massachusetts') %>%
-  group_by(Country.Region, variable) %>%
+#oof, fix state abbreviations to names for US states:
+us_cases = cases_df %>% 
+  filter(Country.Region == 'US') %>%
+  mutate(Province.State = str_extract(Province.State, '\\b[^,]+$')) %>%
+  mutate(Province.State = ifelse(Province.State %in% state.abb,
+                                 state.name[match(Province.State, state.abb)],
+                                 Province.State)
+  ) %>%
+  group_by(Province.State, variable) %>%
   summarize(total_cases=sum(value))
-
+  
+#Get data for US cases in Massachusetts
+ma_cases = us_cases %>% 
+  filter(Province.State == 'Massachusetts')
 
 ```
 
@@ -132,47 +135,86 @@ Plot Global case trend
 
 ```{R}
 library(ggplot2)
-
-ggplot(data=cases_notnull) +
-  geom_path(aes(x=variable, 
-                y=total_cases, 
-                group=Country.Region, 
-                col=Country.Region)
-            ) +
-  theme_minimal() +
-  theme(legend.position = 'none')
-  
-```
-
-And again, but this time on a log scale so we can see the smaller lines.
-
-```{R}
 # turn off scientific notation, show real numbers:
 options(scipen=999, digits=1) 
 
-#plot on log scale
+
 ggplot(data=cases_notnull) +
   geom_path(aes(x=variable, 
                 y=total_cases, 
                 group=Country.Region, 
                 col=Country.Region)
             ) +
-  scale_y_log10() +
   theme_minimal() +
-  theme(legend.position = 'none')
+  theme(legend.position = 'none') +
+  xlab('Date') +
+  ylab('Total Cases')
+
+  
 ```
 
-## US Trends
+China (the top line) dominates that graph so what if we make the same graph but without China:
 
 ```{R}
-ggplot(us_cases) +
+cases_notchina = cases_notnull %>%
+  filter(Country.Region != "China")
+
+country_plot = ggplot(cases_notchina) +
   geom_path(aes(x=variable, 
                 y=total_cases, 
                 group=Country.Region, 
                 col=Country.Region)
             ) +
   theme_minimal() +
-  theme(legend.position = 'none')
+  theme(legend.position = 'none') +  
+  xlab('Date') +
+  ylab('Total Cases')
+
+```
+
+That's better for showing the trends in other countries, but we have turned off the legend because it shows all countries that have cases (~125). Use geom_text() to add labels to the right of the end of each line.
+
+```{R}
+label_cou = ggplot(cases_notchina) +
+  geom_path(aes(x=variable, 
+                y=total_cases, 
+                group=Country.Region, 
+                col=Country.Region)
+            ) +
+  geom_text(data = cases_notchina %>% filter(variable == max(variable, na.rm=T)-1), 
+            aes(label = Country.Region, colour = Country.Region, x = max(variable, na.rm=T), y = total_cases), hjust = "inward") +
+  scale_color_discrete() + 
+  theme_minimal() +
+  theme(legend.position = 'none') +  
+  xlab('Date') +
+  ylab('Total Cases')
+
+```
+
+
+
+## US Trends
+
+Let's apply the same thinking to plot the trend for all US States reporting cases:
+
+Then plot:
+
+```{R}
+state_plot =ggplot(us_cases) +
+  geom_path(aes(x=variable, 
+                y=total_cases, 
+                group=Province.State,
+                col=Province.State)
+            ) +
+  geom_text(data = us_cases %>% filter(variable == max(variable, na.rm=T)-1), 
+            aes(label = Province.State, colour = Province.State, x = max(variable, na.rm=T), y = total_cases), hjust = "inward") +
+  theme_minimal() +
+  theme(legend.position = 'none') +  
+  xlab('Date') +
+  ylab('Total Cases')
+
+state_plot
+
 ```
 
 ## MA Trends
@@ -180,16 +222,41 @@ ggplot(us_cases) +
 What about the cases in Massachusetts only?
 
 ```{R}
-ggplot(ma_cases) +
+ma_plot = ggplot(ma_cases) +
   geom_path(aes(x=variable, 
-                y=total_cases, 
-                group=Country.Region, 
-                col=Country.Region)
+                y=total_cases)
             ) +
   theme_minimal() +
-  theme(legend.position = 'none')
+  theme(legend.position = 'none') +
+  xlab('Date') +
+  ylab('Total Cases')
+
+ma_plot
+
 ```
 
+# Multipanel Plots
+
+cowplot!
+
+```{R}
+library(cowplot)
+cowplot = plot_grid(label_cou, state_plot, ma_plot, ncol=3, align = 'v', labels="AUTO")
+cowplot
+
+```
+
+
+# Saving Plots
+
+Use ggsave() to create image files of your ggplot images.
+
+```{R}
+dir.create('figures')
+ggsave(cowplot, file='figures/corona_fig.png', height=6, width=12, units='in', dpi=600)
+```
+
+Which should look like [this]('./figures/corona_fig.png')
 
 
 # Cumulative Infections Script
