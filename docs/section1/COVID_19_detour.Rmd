@@ -256,7 +256,7 @@ dir.create('figures')
 ggsave(cowplot, file='figures/corona_fig.png', height=6, width=12, units='in', dpi=600)
 ```
 
-Which should look like [this]('./figures/corona_fig.png')
+Which should look like [this]('figures/corona_fig.png')
 
 
 # Cumulative Infections Script
