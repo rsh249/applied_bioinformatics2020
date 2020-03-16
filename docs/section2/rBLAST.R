@@ -11,8 +11,8 @@ library(rBLAST)
 #devtools::install_github("mhahsler/rBLAST")
 
 # Download SRA File:
-#srr=c('SRR11043475')
-#system(paste('fastq-dump', srr, sep=' '))
+srr=c('SRR11206994')
+system(paste('fastq-dump', srr, sep=' '))
 
 
 # Read taxonomy database
@@ -21,8 +21,8 @@ taxaNames<-read.names.sql("/usr/share/data/taxonomizr/names.dmp")
 
 
 # read fastq
-dna = readFastq('/var/lib/minknow/data/Roche_pond_S1/Roche_pond_S1/20200218_2103_MN30146_ACE154_b4c6b55e/fastq_pass/barcode01', pattern=".fastq")
-reads = sread(dna, id=id(dna)) 
+dna = readFastq('SRR11206995.fastq')
+reads = sread(dna)
 qscores = quality(dna) 
 
 # plot readlength
@@ -32,7 +32,7 @@ widths = as.data.frame(reads@ranges@width)
     theme_linedraw() + 
     xlab('Read Length (bp)') +
     xlim(0,2000) +
-    ggtitle('Read length distribution for 450bp amplicon'))
+    ggtitle('Read length distribution for 550bp amplicon'))
 
 # plot qscores
 numqscores = as(qscores, "matrix") # converts to numeric scores automatically
@@ -62,7 +62,7 @@ DNAset=DNAStringSet(u.reads)
 
 ## blast
 bl <- blast(db="/usr/share/data/ncbi/nt/nt.fa")
-cl <- predict(bl, DNAset, BLAST_args = '-num_threads 12 -evalue 1e-100')
+cl <- predict(bl, DNAset, BLAST_args = '-num_threads 48 -evalue 1e-100')
 accid = as.character(cl$SubjectID) # accession IDs of BLAST hits
 
 # Plot results
@@ -77,7 +77,7 @@ cltax=cbind(cl,taxlist)
 cltop = cltax %>% 
   group_by(QueryID) %>% 
   top_n(1, Bits) %>%
-  filter(Perc.Ident>85) 
+  filter(Perc.Ident>90) 
 
 ggplot(cltop) + geom_density(aes(x=Alignment.Length))
 
@@ -92,5 +92,6 @@ ggplot(cltop) + geom_density(aes(x=Alignment.Length))
 
 
 
-(ggplot(data=cltop) +
-    geom_density2d(aes(x=Bits, y=Alignment.Length)))
+#(ggplot(data=cltop) +
+#    geom_density2d(aes(x=Bits, y=Alignment.Length)))
+

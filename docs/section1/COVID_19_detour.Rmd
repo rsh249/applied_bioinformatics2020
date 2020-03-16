@@ -270,6 +270,7 @@ library(tibble)
 library(ggplot2)
 library(reshape2)
 library(stringr)
+library(cowplot)
 
 #get data
 system('git clone https://github.com/CSSEGISandData/COVID-19')
@@ -284,15 +285,62 @@ cases_df = melt(cases,
   mutate(variable=str_replace(variable, "X", "")) %>%
   mutate(variable=as.Date(variable, "%m.%d.%y"))
 
+#calculate running case total for each country by summing across state.province groups 
 cases_notnull = cases_df %>% 
   group_by(Country.Region, variable) %>%
   summarize(total_cases=sum(value)) 
 
-ggplot(data=cases_notnull) +
+cases_notchina = cases_notnull %>%
+  filter(Country.Region != "China")
+
+#oof, fix state abbreviations to names for US states:
+us_cases = cases_df %>% 
+  filter(Country.Region == 'US') %>%
+  mutate(Province.State = str_extract(Province.State, '\\b[^,]+$')) %>%
+  mutate(Province.State = ifelse(Province.State %in% state.abb,
+                                 state.name[match(Province.State, state.abb)],
+                                 Province.State)
+  ) %>%
+  group_by(Province.State, variable) %>%
+  summarize(total_cases=sum(value))
+  
+#Get data for US cases in Massachusetts
+ma_cases = us_cases %>% 
+  filter(Province.State == 'Massachusetts')
+
+#plot global trends
+label_cou = ggplot(cases_notchina) +
   geom_path(aes(x=variable, 
                 y=total_cases, 
                 group=Country.Region, 
                 col=Country.Region)
+            ) +
+  geom_text(data = cases_notchina %>% filter(variable == max(variable, na.rm=T)-1), 
+            aes(label = Country.Region, colour = Country.Region, x = max(variable, na.rm=T), y = total_cases), hjust = "inward") +
+  scale_color_discrete() + 
+  theme_minimal() +
+  theme(legend.position = 'none') +  
+  xlab('Date') +
+  ylab('Total Cases')
+
+#plot US data
+state_plot =ggplot(us_cases) +
+  geom_path(aes(x=variable, 
+                y=total_cases, 
+                group=Province.State,
+                col=Province.State)
+            ) +
+  geom_text(data = us_cases %>% filter(variable == max(variable, na.rm=T)-1), 
+            aes(label = Province.State, colour = Province.State, x = max(variable, na.rm=T), y = total_cases), hjust = "inward") +
+  theme_minimal() +
+  theme(legend.position = 'none') +  
+  xlab('Date') +
+  ylab('Total Cases')
+
+#plot MA data
+ma_plot = ggplot(ma_cases) +
+  geom_path(aes(x=variable, 
+                y=total_cases)
             ) +
   theme_minimal() +
   theme(legend.position = 'none') +
@@ -300,4 +348,18 @@ ggplot(data=cases_notnull) +
   ylab('Total Cases')
 
 
+cowplot = plot_grid(label_cou, state_plot, ma_plot, ncol=3, align = 'v', labels="AUTO")
+cowplot
+
+dir.create('figures', showWarnings=F)
+ggsave(cowplot, file='figures/corona_fig.png', height=6, width=12, units='in', dpi=600)
+
 ```
+
+# Critique:
+
+While these graphs are informative they do NOT make it easy to view the trends of individual countries/states outside of those that have the highest values. We could muck around with the code to filter better to show countries/states of interest, but there may be better ways. In the [next section](interactive_ggplotly_covid19.html) we will experiment with code to generate interactive web-based graphics from ggplot code using ggplotly.
+
+# Homework:
+
+Generate a script to create all these graphs but for the death or recovery rate instead of the total cases. Run the script, save the graphs (using ggsave), and put the code and graphs in your blog. Spend some time in your blog reflecting on the data you see in these.
