@@ -1,7 +1,7 @@
 ---
 title: "COVID-19 Data Vis"
-author: "Prof. Harbert"
-date: "Part ???"
+author: "Rob Harbert"
+date: '`r format(Sys.Date(), "%Y-%B-%d")`'
 output: 
   html_document:
     theme: united
@@ -18,14 +18,13 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 
+# Trends in COVID-19 Infection Cases {.tabset .tabset-fade .tabset-pills}
 
-## Interactive Charts
+Here are a few simple interactive graphics tracking the Novel Coronavirus cases globally and in the US States. The aim of this page is to provide a simple interface to view trends in Coronavirus infection rates and compare between countries and within the US.
 
-Try plotly
+## Global Cases by Country
 
-## Global
-
-```{R, message=F, echo = F}
+```{R, message=F, echo = F, warning=F}
 library(dplyr)
 library(tibble)
 library(ggplot2)
@@ -45,11 +44,18 @@ cases_df = melt(cases,
                measure.vars = grep('X', colnames(cases), value=T)
                ) %>% 
   mutate(variable=str_replace(variable, "X", "")) %>%
-  mutate(variable=as.Date(variable, "%m.%d.%y"))
+  mutate(variable=as.Date(variable, "%m.%d.%y")) %>%
+  filter(Country.Region != "Diamond Princes") %>%
+  filter(Country.Region != "Cruise Ship")
 
 cases_notnull = cases_df %>% 
   group_by(Country.Region, variable) %>%
   summarize(total_cases=sum(value)) 
+
+days_since100 = cases_notnull %>%
+  group_by(Country.Region) %>%
+  filter(total_cases >= 100) %>%
+  mutate(days_since = 1:n())
 
 cases_notchina = cases_notnull %>%
   filter(Country.Region != "China")
@@ -70,8 +76,33 @@ label_cou = ggplot(cases_notnull %>% ungroup()) +
   xlab('Date') +
   ylab('Total Cases')
 
+#since 100 cases/country
+cou100 = ggplot(days_since100 %>% ungroup()) +
+  geom_path(aes(x=days_since, 
+                y=total_cases, 
+                group=Country.Region, 
+                col=Country.Region)
+            ) +
+  scale_color_discrete() + 
+  scale_y_log10() +
+  theme_minimal() +
+  theme(legend.position = 'none') +  
+  xlab('Days Since 100 cases') +
+  ylab('Total Cases')
+
 #convert interactive plotly
-pltly_cou = ggplotly(label_cou)
+pltly_cou = ggplotly(cou100)
+
+pltly_cou
+```
+
+Figure 1. Coronavirus Cases by Country. Confirmed case counts in each country from the [Johns Hopkins University Center for Systems Science and Engineering](https://coronavirus.jhu.edu/map.html) plotted on a log-scale. Linear increases in a log-scale graph indicate periods of exponential growth in the number of cases (exponential = doubling of cases per unit time). All curves shown from date of first 100 cases identified in each country to account for different dispersal times. View country identity and graph values by hovering over the lines. Use tool menue to zoom and rescale axes.
+
+Interpretation: Most countries are increasing along a path that shows exponential growth in case counts is occurring. These trends are evidence of rapid spread that is ongoing in most countries. Note that Japan and Singapore diverge from most of the other countries on this graphic.
+
+## Trends by US States
+
+```{R, message=F, echo=F, warning=F}
 
 us_cases = cases_df %>% 
   filter(Country.Region == 'US') %>%
@@ -81,7 +112,11 @@ us_cases = cases_df %>%
                                  Province.State)
   ) %>%
   group_by(Province.State, variable) %>%
-  summarize(total_cases=sum(value))
+  summarize(total_cases=sum(value)) %>%
+  filter(total_cases >= 10) %>%
+  mutate(days_since = 1:n()) %>%
+  filter(Province.State != "Diamond Princess") %>%
+  filter(Province.State != "Grand Princess")
 
 #create ggplot object
 g2 = state_plot =ggplot(us_cases %>% ungroup()) +
@@ -90,26 +125,42 @@ g2 = state_plot =ggplot(us_cases %>% ungroup()) +
                 group=Province.State,
                 col=Province.State)
             ) +
-  geom_text(data = us_cases %>% filter(variable == max(variable, na.rm=T)-1), 
-            aes(label = Province.State, colour = Province.State, x = max(variable, na.rm=T), y = total_cases), hjust = "inward") +
+#  geom_text(data = us_cases %>% filter(variable == max(variable, na.rm=T)-1), 
+           # aes(label = Province.State, colour = Province.State, x = max(variable, na.rm=T), y = total_cases), hjust = "inward") +
+  scale_y_log10() +
   theme_minimal() +
   theme(legend.position = 'none') +  
   xlab('Date') +
   ylab('Total Cases')
 
+#since 100 cases/country
+state10 = ggplot(us_cases %>% ungroup()) +
+  geom_path(aes(x=days_since, 
+                y=total_cases, 
+                group=Province.State, 
+                col=Province.State)
+            ) +
+  scale_color_discrete() +
+  scale_y_log10() +
+  theme_minimal() +
+  theme(legend.position = 'none') +  
+  xlab('Days Since 10 cases') +
+  ylab('Total Cases')
+
+
 
 #convert interactive plotly
-pltly_states = ggplotly(g2)
+pltly_states1 = ggplotly(g2)
+#pltly_states2 = ggplotly(state10)
 
-pltly_cou
-```
+pltly_states1
 
-Text about country trends
-
-```{R, message=F, echo=F}
-
-pltly_states
+#subplot(pltly_states1, pltly_states2, nrows=2)
 
 ```
+Figure 2. Coronavirus Cases by US State. Confirmed case counts in each US State with at least 10 cases from the [Johns Hopkins University Center for Systems Science and Engineering](https://coronavirus.jhu.edu/map.html) plotted on a log scale. Plotted by actual calendar date.
 
-Text about US State trends.
+Interpretation: All states with active cases are exhibiting exponential growth. While case numbers may be small now these data suggest that rapid increases in identified Coronavirus cases are forthcoming. Note that California identified cases relatively early. However, Washington and New York have more cases presently. One possibility is that New York and Washington had Coronavirus cases earlier that were not identified and the rates of spread is similar to what has been observed in California. Despite Massachusetts being relatively small it ranks as the state with the 4th highest number of cases presently.
+
+
+
