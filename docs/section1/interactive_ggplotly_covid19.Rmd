@@ -1,0 +1,110 @@
+---
+title: "Interactive Graphics with plotly"
+author: "Prof. Harbert"
+date: "Part ???"
+output: 
+  html_document:
+    theme: united
+    highlight: tango
+    df_print: paged
+    toc: true
+    toc_float: true
+    toc_depth: 4
+  
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Interactive Charts
+
+Try plotly
+
+## Global
+
+```{R, message=F}
+library(dplyr)
+library(tibble)
+library(ggplot2)
+library(reshape2)
+library(stringr)
+library(cowplot)
+library(plotly)
+
+#get data
+system('git clone https://github.com/CSSEGISandData/COVID-19')
+
+#load cases, deaths, recovered data
+cases = read.csv('COVID-19/csse_covid_19_data/csse_covid_19_time_series/time_series_19-covid-Confirmed.csv')
+
+cases_df = melt(cases, 
+               id.vars=c('Province.State', 'Country.Region', 'Lat', 'Long'), 
+               measure.vars = grep('X', colnames(cases), value=T)
+               ) %>% 
+  mutate(variable=str_replace(variable, "X", "")) %>%
+  mutate(variable=as.Date(variable, "%m.%d.%y"))
+
+cases_notnull = cases_df %>% 
+  group_by(Country.Region, variable) %>%
+  summarize(total_cases=sum(value)) 
+
+cases_notchina = cases_notnull %>%
+  filter(Country.Region != "China")
+
+#create ggplot object
+#plot global trends
+label_cou = ggplot(cases_notchina %>% ungroup()) +
+  geom_path(aes(x=variable, 
+                y=total_cases, 
+                group=Country.Region, 
+                col=Country.Region)
+            ) +
+  geom_text(data = cases_notchina %>% filter(variable == max(variable, na.rm=T)-1), 
+            aes(label = Country.Region, colour = Country.Region, x = max(variable, na.rm=T), y = total_cases), hjust = "inward") +
+  scale_color_discrete() + 
+  theme_minimal() +
+  theme(legend.position = 'none') +  
+  xlab('Date') +
+  ylab('Total Cases')
+
+#convert interactive plotly
+ggplotly(label_cou)
+```
+
+
+## State Cases
+
+plotly plot for US cases by state: 
+
+```{R, message=F}
+us_cases = cases_df %>% 
+  filter(Country.Region == 'US') %>%
+  mutate(Province.State = str_extract(Province.State, '\\b[^,]+$')) %>%
+  mutate(Province.State = ifelse(Province.State %in% state.abb,
+                                 state.name[match(Province.State, state.abb)],
+                                 Province.State)
+  ) %>%
+  group_by(Province.State, variable) %>%
+  summarize(total_cases=sum(value))
+
+#create ggplot object
+g2 = state_plot =ggplot(us_cases %>% ungroup()) +
+  geom_path(aes(x=variable, 
+                y=total_cases, 
+                group=Province.State,
+                col=Province.State)
+            ) +
+  geom_text(data = us_cases %>% filter(variable == max(variable, na.rm=T)-1), 
+            aes(label = Province.State, colour = Province.State, x = max(variable, na.rm=T), y = total_cases), hjust = "inward") +
+  theme_minimal() +
+  theme(legend.position = 'none') +  
+  xlab('Date') +
+  ylab('Total Cases')
+
+
+#convert interactive plotly
+ggplotly(g2)
+```
