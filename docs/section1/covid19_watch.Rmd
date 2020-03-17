@@ -161,5 +161,5 @@ Figure 2. Coronavirus Cases by US State. Confirmed case counts in each US State 
 
 Interpretation: All states with active cases are exhibiting exponential growth. While case numbers may be small now these data suggest that rapid increases in identified Coronavirus cases are forthcoming. Note that California identified cases relatively early. However, Washington and New York have more cases presently. One possibility is that New York and Washington had Coronavirus cases earlier that were not identified and the rates of spread is similar to what has been observed in California. Despite Massachusetts being relatively small it ranks as the state with the 4th highest number of cases presently.
 
-
+[home](devbioinformatics.org)
 
