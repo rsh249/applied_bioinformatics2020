@@ -44,16 +44,16 @@ cases_df = melt(cases,
                ) %>% 
   mutate(variable=str_replace(variable, "X", "")) %>%
   mutate(variable=as.Date(variable, "%m.%d.%y")) %>%
-  filter(Country.Region != "Diamond Princes") %>%
+  filter(Country.Region != "Diamond Princess") %>%
   filter(Country.Region != "Cruise Ship")
 
 cases_notnull = cases_df %>% 
   group_by(Country.Region, variable) %>%
   summarize(total_cases=sum(value)) 
 
-days_since100 = cases_notnull %>%
+days_since500 = cases_notnull %>%
   group_by(Country.Region) %>%
-  filter(total_cases >= 100) %>%
+  filter(total_cases >= 500) %>%
   mutate(days_since = 1:n())
 
 cases_notchina = cases_notnull %>%
@@ -75,8 +75,8 @@ label_cou = ggplot(cases_notnull %>% ungroup()) +
   xlab('Date') +
   ylab('Total Cases')
 
-#since 100 cases/country
-cou100 = ggplot(days_since100 %>% ungroup()) +
+#since 500 cases/country
+cou500 = ggplot(days_since500 %>% ungroup()) +
   geom_path(aes(x=days_since, 
                 y=total_cases, 
                 group=Country.Region, 
@@ -86,18 +86,19 @@ cou100 = ggplot(days_since100 %>% ungroup()) +
   scale_y_log10() +
   theme_minimal() +
   theme(legend.position = 'none') +  
-  xlab('Days Since 100 cases') +
+  xlab('Days Since 500 cases') +
   ylab('Total Cases')
 
 #convert interactive plotly
-pltly_cou = ggplotly(cou100)
+pltly_lab = ggplotly(label_cou)
+pltly_cou = ggplotly(cou500)
 
 pltly_cou
 ```
 
-Figure 1. Coronavirus Cases by Country. Confirmed case counts in each country from the [Johns Hopkins University Center for Systems Science and Engineering](https://coronavirus.jhu.edu/map.html) plotted on a log-scale. Linear increases in a log-scale graph indicate periods of exponential growth in the number of cases (exponential = doubling of cases per unit time). All curves shown from date of first 100 cases identified in each country to account for different dispersal times. View country identity and graph values by hovering over the lines. Use tool menue to zoom and rescale axes.
+Figure 1. Coronavirus Cases by Country. Confirmed case counts in each country from the [Johns Hopkins University Center for Systems Science and Engineering](https://coronavirus.jhu.edu/map.html) plotted on a log-scale. Linear increases in a log-scale graph indicate periods of exponential growth in the number of cases (exponential = doubling of cases per unit time). All curves shown from date of first 500 cases identified in each country to account for different dispersal times. View country identity and graph values by hovering over the lines. Use tool menue to zoom and rescale axes.
 
-Interpretation: Most countries are increasing along a path that shows exponential growth in case counts is occurring. These trends are evidence of rapid spread that is ongoing in most countries. Note that Japan and Singapore diverge from most of the other countries on this graphic.
+Interpretation: Most countries are increasing along a path that shows exponential growth in case counts is occurring. These trends are evidence of rapid spread that is ongoing in most countries. Note that Japan and South Korea begin to diverge from most of the other countries on this graphic.
 
 ## Trends by US States
 
@@ -132,7 +133,7 @@ g2 = state_plot =ggplot(us_cases %>% ungroup()) +
   xlab('Date') +
   ylab('Total Cases')
 
-#since 100 cases/country
+#since 500 cases/country
 state10 = ggplot(us_cases %>% ungroup()) +
   geom_path(aes(x=days_since, 
                 y=total_cases, 

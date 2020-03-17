@@ -38,6 +38,8 @@ That's it.
 
 The raw data compiled by Johns Hopkins University Center for Systems Science and Engineering and used in online [dashboards](https://coronavirus.jhu.edu/map.html) tracking the virus spread are publicly available in a [GitHub repository](https://github.com/CSSEGISandData/COVID-19).
 
+Also check out the case data by age repo from data scientist [Clause Wilke](https://gist.github.com/clauswilke/0621446f461049a9556c8372d5bc8a9b).
+
 We will clone the entire repository and access the data files within. 
 
 ```{bash, message=F, echo=F}
