@@ -17,7 +17,6 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-
 # Trends in COVID-19 Infection Cases {.tabset .tabset-fade .tabset-pills}
 
 Here are a few simple interactive graphics tracking the Novel Coronavirus cases globally and in the US States. The aim of this page is to provide a simple interface to view trends in Coronavirus infection rates and compare between countries and within the US.
