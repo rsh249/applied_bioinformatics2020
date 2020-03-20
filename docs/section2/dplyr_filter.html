@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html>
 
 <head>
 
 <meta charset="utf-8" />
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
@@ -199,6 +198,7 @@ summary {
   border: none;
   display: inline-block;
   border-radius: 4px;
+  background-color: transparent;
 }
 
 .tabset-dropdown > .nav-tabs.nav-tabs-open > li {
@@ -227,6 +227,12 @@ summary {
 }
 }
 
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
 
 .toc-content {
   padding-left: 30px;
@@ -332,7 +338,7 @@ stuff &lt;-<span class="st"> </span><span class="kw">transform</span>(stuff, <sp
 <span class="kw">head</span>(stuff)</code></pre></div>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
-{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["gp"],"name":[1],"type":["fctr"],"align":["left"]},{"label":["sub"],"name":[2],"type":["fctr"],"align":["left"]},{"label":["y"],"name":[3],"type":["int"],"align":["right"]},{"label":["x"],"name":[4],"type":["int"],"align":["right"]}],"data":[{"1":"a","2":"red","3":"1","4":"1","_rn_":"1"},{"1":"a","2":"red","3":"1","4":"1","_rn_":"2"},{"1":"a","2":"green","3":"1","4":"1","_rn_":"3"},{"1":"a","2":"green","3":"1","4":"2","_rn_":"4"},{"1":"a","2":"green","3":"1","4":"2","_rn_":"5"},{"1":"a","2":"red","3":"1","4":"2","_rn_":"6"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["gp"],"name":[1],"type":["fctr"],"align":["left"]},{"label":["sub"],"name":[2],"type":["fctr"],"align":["left"]},{"label":["y"],"name":[3],"type":["int"],"align":["right"]},{"label":["x"],"name":[4],"type":["int"],"align":["right"]}],"data":[{"1":"a","2":"green","3":"1","4":"1","_rn_":"1"},{"1":"a","2":"green","3":"1","4":"1","_rn_":"2"},{"1":"a","2":"blue","3":"1","4":"1","_rn_":"3"},{"1":"a","2":"green","3":"1","4":"2","_rn_":"4"},{"1":"a","2":"green","3":"1","4":"2","_rn_":"5"},{"1":"a","2":"green","3":"1","4":"2","_rn_":"6"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
 <p>How could we write code to count the number of values of “red” in the <em>sub</em> column for each category in the <em>gp</em> column? Or how could we find the maximum value of <em>x</em> for each <em>gp</em>?</p>
@@ -381,7 +387,7 @@ stuff <span class="op">%&gt;%</span><span class="st"> </span>
 <span class="st">  </span><span class="kw">summarize</span>(<span class="dt">count=</span><span class="kw">n</span>())</code></pre></div>
 <div data-pagedtable="false">
 <script data-pagedtable-source type="application/json">
-{"columns":[{"label":["gp"],"name":[1],"type":["fctr"],"align":["left"]},{"label":["sub"],"name":[2],"type":["fctr"],"align":["left"]},{"label":["count"],"name":[3],"type":["int"],"align":["right"]}],"data":[{"1":"a","2":"blue","3":"144"},{"1":"a","2":"green","3":"135"},{"1":"a","2":"red","3":"121"},{"1":"b","2":"blue","3":"124"},{"1":"b","2":"green","3":"133"},{"1":"b","2":"red","3":"143"},{"1":"c","2":"blue","3":"132"},{"1":"c","2":"green","3":"132"},{"1":"c","2":"red","3":"136"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+{"columns":[{"label":["gp"],"name":[1],"type":["fctr"],"align":["left"]},{"label":["sub"],"name":[2],"type":["fctr"],"align":["left"]},{"label":["count"],"name":[3],"type":["int"],"align":["right"]}],"data":[{"1":"a","2":"blue","3":"136"},{"1":"a","2":"green","3":"128"},{"1":"a","2":"red","3":"136"},{"1":"b","2":"blue","3":"129"},{"1":"b","2":"green","3":"139"},{"1":"b","2":"red","3":"132"},{"1":"c","2":"blue","3":"135"},{"1":"c","2":"green","3":"133"},{"1":"c","2":"red","3":"132"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
 </div>
@@ -405,20 +411,17 @@ blasthits =<span class="st"> </span><span class="kw">read.table</span>(<span cla
 <p>The dplyr tools can easily slice out columns or rows given certain criteria (e.g., the column names or the values for a parameter).</p>
 <p>This table is very large and maybe we don’t want all of the columns.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">colnames</span>(blasthits)</code></pre></div>
-<pre><code>##  [1] &quot;QueryID&quot;          &quot;SubjectID&quot;        &quot;Perc.Ident&quot;      
-##  [4] &quot;Alignment.Length&quot; &quot;Mismatches&quot;       &quot;Gap.Openings&quot;    
-##  [7] &quot;Q.start&quot;          &quot;Q.end&quot;            &quot;S.start&quot;         
-## [10] &quot;S.end&quot;            &quot;E&quot;                &quot;Bits&quot;            
-## [13] &quot;superkingdom&quot;     &quot;phylum&quot;           &quot;class&quot;           
-## [16] &quot;order&quot;            &quot;family&quot;           &quot;genus&quot;           
-## [19] &quot;species&quot;</code></pre>
+<pre><code>##  [1] &quot;QueryID&quot;          &quot;SubjectID&quot;        &quot;Perc.Ident&quot;       &quot;Alignment.Length&quot;
+##  [5] &quot;Mismatches&quot;       &quot;Gap.Openings&quot;     &quot;Q.start&quot;          &quot;Q.end&quot;           
+##  [9] &quot;S.start&quot;          &quot;S.end&quot;            &quot;E&quot;                &quot;Bits&quot;            
+## [13] &quot;superkingdom&quot;     &quot;phylum&quot;           &quot;class&quot;            &quot;order&quot;           
+## [17] &quot;family&quot;           &quot;genus&quot;            &quot;species&quot;</code></pre>
 <p>But we do not really need all of these columns.</p>
 <p>Trim the table to only use QueryID, SubjectID, Perc.Ident, Alignment.Length, E, Bits, family, genus.</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">sele.hits =<span class="st"> </span><span class="kw">select</span>(blasthits, QueryID, SubjectID, Perc.Ident, Alignment.Length, E, Bits, family, genus)
 <span class="kw">colnames</span>(sele.hits)</code></pre></div>
-<pre><code>## [1] &quot;QueryID&quot;          &quot;SubjectID&quot;        &quot;Perc.Ident&quot;      
-## [4] &quot;Alignment.Length&quot; &quot;E&quot;                &quot;Bits&quot;            
-## [7] &quot;family&quot;           &quot;genus&quot;</code></pre>
+<pre><code>## [1] &quot;QueryID&quot;          &quot;SubjectID&quot;        &quot;Perc.Ident&quot;       &quot;Alignment.Length&quot;
+## [5] &quot;E&quot;                &quot;Bits&quot;             &quot;family&quot;           &quot;genus&quot;</code></pre>
 <p>OR Filter the table by match criteria (e.g., E, Bits, or Perc.Ident)</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">top.hits =<span class="st"> </span><span class="kw">filter</span>(blasthits, Bits<span class="op">&gt;</span><span class="dv">350</span>)
 <span class="kw">nrow</span>(top.hits)</code></pre></div>
