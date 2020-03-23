@@ -104,23 +104,50 @@ listhits = blasthits[1:10000,] %>%
 
 Summarise read counts for each lowest common ancestor taxon.
 
-```{R, eval=F}
-allhits = blasthits %>%
+```{R, eval=T}
+#Analyze first part of the results
+allhits = blasthits[1:500000,] %>%
   group_by(QueryID) %>%
   group_modify(~ lca(.x)) %>%
-  group_by(QueryID, last_common) %>%
-  summarize(count=n()) %>%
-  group_by(last_common) %>%
-  summarize()
-  arrange(desc(count)
+  slice(1) %>% #keep only first row in each group (one per read)
+  group_by(last_common) %>% # group by LCA taxon
+  summarize(lca_count = n()) %>% # count num reads (rows) for each LCA
+  arrange(desc(lca_count)) # sort descending
 ```
 
 * This takes a while. We may benefit from exploring parallel processing at this stage: https://github.com/tidyverse/multidplyr
 
 ```{R}
 library(ggplot2)
-ggplot(allhits %>% arrange(desc(count))) +
-  geom_col(aes(x=last_common, y=count))
+(lca_plot = ggplot(allhits %>% filter(!is.na(last_common)) ) +
+  geom_col(aes(x=last_common, y=lca_count))) + 
+  scale_y_log10() +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle=90))
 ```
+
+
+The plot shows that we are highly confident in the presence of *Callitriche* and that there are many reads that match to *Callitriche stagnalis* unambiguously. These results show that we are not very confident in the presence of other genera, but *Cardamine* (in the Brassicaceae), *Lysimachia* (Primulaceae, several native and non-native species present in Massachusetts), and *Toxicodentron* (poison ivy, known to be present near this site) are also present but identified by many fewer reads.
+
+SAVE YOUR PLOT: 
+
+```{R}
+ggsave(lca_plot, file='lca_plot.png', height=8, width=8, dpi=700)
+```
+
+# Future Work:
+
+This LCA method suffers from a few logistical issues:
+
++ First, it is difficult to count nested taxonomy with this. The reads that map unambiguously in a genus are then NOT counted in the read count for each family, order, etc. While the graph above shows which taxa we are most confident in it is not a good representation of how confident we are of which higher level taxa (families/orders) are present. At least not as written here.
++ Second, the code is slow enough on a large blasthits table that it might be worth exploring options for parallel processing to speed up execution time on HPC resources.
++ Annoying: the ggplot orders the x axis alphabetically, not by height of bar.
+
+We will look into fixing this further next class.
+
+
+# Homework: 
+
+Try the LCA code on a BLAST search with another eDNA fastq file. Post results image to Slack [#discussion](https://bio332applied-4mi2242.slack.com/archives/CS8TRGE0K).
 
 [home](https://bio332.devbioinformatics.org)
