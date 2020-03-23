@@ -1,0 +1,126 @@
+---
+title: "Lowest Common Ancestor"
+author: "Prof. Harbert"
+date: "Section 2: Part 4"
+output: 
+  html_document:
+    theme: united
+    highlight: tango
+    df_print: paged
+    toc: true
+    toc_float: true
+    toc_depth: 4
+  
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+[
+```{R, echo=F, message=F}
+knitr::include_graphics('https://imgs.xkcd.com/comics/exa_exabyte_2x.png')
+```
+](https://xkcd.com/2283/)
+
+# Goals
+
++ Develop a simple algorithm to identify the Lowest Common Ancestor for each read in our  BLAST results.
++ Practice more dplyr
+
+# LCA {.tabset .tabset-fade .tabset-pills}
+
+Recall that our BLAST results can be classified to the NCBI taxonomy (we used taxonomizr). The resulting table has columns for superkingdom, phylum, class, order, family, genus, and species.
+
+```{R, eval=F}
+download.file('https://zenodo.org/record/3686052/files/blasthits2.tab.gz?download=1',overwrite=T, destfile = 'blasthits2.tab.gz')
+system('gunzip blasthits2.tab.gz')
+blasthits = read.table('blasthits2.tab')
+head(blasthits)
+```
+
+```{R, eval=T, echo=F, message=F}
+blasthits = read.table('blasthits2.tab')
+head(blasthits)
+```
+
+We want to write code to figure out how many names there are in each column for each read that has one match or more.
+
+## The Search 
+
+Split the table into chunks by read groups:
+
+```{R}
+library(dplyr)
+listhits = blasthits[1:1000,] %>%
+  group_by(QueryID) %>% 
+  group_split()
+```
+
+How many names are there in each taxonomy column?
+
+```{R}
+# find the column that doesn't change
+# taxonomy column names:
+taxnames = c('superkingdom', 'phylum', 'order', 'family', 'genus', 'species')
+shortnames = apply(listhits[[1]][,taxnames], 2, unique)
+countshnames = sapply(shortnames, length)
+```
+
+Which is the last column that has only one name and what's the name in it?
+
+```{R}
+lastuni = tail(names(countshnames[countshnames==1]), n=1)
+lastuni
+listhits[[1]][1,lastuni]
+```
+
+## Functionize It
+
+Put that together:
+
+```{R}
+lca = function(x) {
+  taxnames = c('superkingdom', 'phylum', 'order', 'family', 'genus', 'species')
+  shortnames = apply(x, 2, unique)
+  countshnames = sapply(shortnames, length)
+  lastuni = tail(names(countshnames[countshnames==1]), n=1)
+  nombre = as.data.frame(x[1,which(colnames(x) == lastuni)])
+  ret = x %>% 
+    mutate(last_common = as.character(nombre[[1]])) %>%
+    mutate(level_lca = lastuni)
+  return(ret)
+}
+
+# then use group_modify to evaluate each read group and return a modified section of the table.
+listhits = blasthits[1:10000,] %>%
+  group_by(QueryID) %>%
+  group_modify(~ lca(.x))
+
+```
+
+## Visualize
+
+Summarise read counts for each lowest common ancestor taxon.
+
+```{R, eval=F}
+allhits = blasthits %>%
+  group_by(QueryID) %>%
+  group_modify(~ lca(.x)) %>%
+  group_by(QueryID, last_common) %>%
+  summarize(count=n()) %>%
+  group_by(last_common) %>%
+  summarize()
+  arrange(desc(count)
+```
+
+* This takes a while. We may benefit from exploring parallel processing at this stage: https://github.com/tidyverse/multidplyr
+
+```{R}
+library(ggplot2)
+ggplot(allhits %>% arrange(desc(count))) +
+  geom_col(aes(x=last_common, y=count))
+```
+
+[home](https://bio332.devbioinformatics.org)
