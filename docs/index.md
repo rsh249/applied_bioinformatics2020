@@ -52,6 +52,8 @@ Learn more about the Oxford Nanopore technology <a href="https://nanoporetech.co
 
 <a href='section2/dplyr_filter.html'> Filter BLAST hits with 'dplyr' </a>
 
+<a href='section2/lca.html'> Lowest Common Ancestor Algorithm with dplyr: Attempt 1 </a>
+
 Other classification methods
 
 <h3 id="S3"> Section 3: High Performance Computing </h3>
