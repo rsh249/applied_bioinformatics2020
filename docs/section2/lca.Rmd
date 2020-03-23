@@ -18,6 +18,8 @@ output:
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+
+# Thanks [xkcd](https://xkcd.com)
 [
 ```{R, echo=F, message=F}
 knitr::include_graphics('https://imgs.xkcd.com/comics/exa_exabyte_2x.png')
