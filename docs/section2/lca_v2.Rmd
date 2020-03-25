@@ -1,0 +1,195 @@
+---
+title: "Lowest Common Ancestor: Attempt 2"
+author: "Prof. Harbert"
+date: "Section 2: Part 5"
+output: 
+  html_document:
+    theme: united
+    highlight: tango
+    df_print: paged
+    toc: true
+    toc_float: true
+    toc_depth: 4
+  
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Lowest Common Ancestor
+
+```{R}
+library(dplyr)
+library(ggplot2)
+
+
+lca = function(x) {
+  require(dplyr)
+  taxnames = c('superkingdom', 'phylum', 'order', 'family', 'genus', 'species')
+  shortnames = apply(x[,taxnames], 2, unique)
+  countshnames = sapply(shortnames, length)
+  lastuni = tail(names(countshnames[countshnames==1]), n=1)
+  nombre = as.data.frame(x[1,which(colnames(x) == lastuni)])
+  ret = x %>% 
+    mutate(last_common = as.character(nombre[[1]])) %>%
+    mutate(level_lca = lastuni)
+  return(ret)
+}
+
+# read file 
+blasthits = read.table('blasthits2.tab')
+
+# Analyze
+#Analyze first part of the results
+allhits = blasthits[1:5000,] %>%
+  group_by(QueryID) %>%
+  group_modify(~ lca(.x)) %>%
+  slice(1) %>% #keep only first row in each group (one per read)
+  group_by(last_common) %>% # group by LCA taxon
+  summarize(lca_count = n()) %>% # count num reads (rows) for each LCA
+  arrange(desc(lca_count)) # sort descending
+
+#plot
+(lca_plot = ggplot(allhits %>% filter(!is.na(last_common)) ) +
+  geom_col(aes(x=last_common, y=lca_count))) + 
+  scale_y_log10() +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle=90))
+```
+
+# Fix 1: Speed
+
+Here we implement parallel processing using multidplyr to analyze the blast hits table by read chunks on multiple R sessions. (Don't try this on your laptop).
+
+```{R}
+#parallel processing with multidplyr
+library(multidplyr)
+
+cluster <- new_cluster(8)
+cluster_library(cluster, 'dplyr')
+cluster_copy(cluster, 'lca')
+
+
+#split groups across multiple CPU cores
+prepare = blasthits %>%
+  group_by(QueryID) %>%
+  partition(cluster) %>%  #split groups into cluster units
+  do({lca(.)}) %>% # Use do to apply function across groups
+  collect() %>% #bring it all back together
+  slice(1) %>% #keep only first row in each group (one per read)
+  group_by(last_common) %>% # group by LCA taxon
+  summarize(lca_count = n()) %>% # count num reads (rows) for each LCA
+  arrange(desc(lca_count))  %>% # sort descending
+  filter(!is.na(last_common)) 
+print(prepare)
+```
+
+# Fix 2: Order result counts:
+
+Use forcats 'fct_reorder()'
+
+```{R}
+library(forcats)
+
+(lca_plot = ggplot(prepare)  +
+  geom_col(aes(x=fct_reorder(last_common, lca_count, .desc=T), y=lca_count)) + 
+  scale_y_log10() +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle=90))
+)
+```
+
+# Fix 3: Nested Taxonomy
+
+It is difficult to count nested taxonomy with this. The reads that map unambiguously in a genus are then NOT counted in the read count for each family, order, etc. 
+
+First, change the function a bit:
+
+```{R}
+lca2 = function(x) {
+  require(dplyr)
+  taxnames = c('superkingdom', 'phylum', 'order', 'family', 'genus', 'species')
+  shortnames = apply(x[,taxnames], 2, unique)
+  countshnames = sapply(shortnames, length)
+  numcount = countshnames==1
+  lastuni = tail(names(shortnames[numcount==T]), n=1)
+  nombre = as.data.frame(x[1,which(colnames(x) == lastuni)])
+  newtax <- as.list(ifelse(countshnames==1,shortnames,NA))
+  
+  ret = x %>% 
+    mutate(last_common = as.character(nombre[[1]])) %>%
+    mutate(level_lca = lastuni) %>%
+    mutate(superkingdom = newtax$superkingdom) %>%
+    mutate(phylum = newtax$phylum) %>%
+    mutate(class = newtax$class) %>%
+    mutate(order = newtax$order) %>%
+    mutate(family = newtax$family) %>%
+    mutate(genus = newtax$genus) %>%
+    mutate(species = newtax$species)
+  return(ret)
+}
+
+
+test = blasthits[500:1000,] %>% 
+  group_by(QueryID) %>%
+  group_modify(~ lca2(.))
+
+cluster <- new_cluster(8)
+cluster_library(cluster, 'dplyr')
+cluster_copy(cluster, 'lca2')
+
+
+#split groups across multiple CPU cores
+prepare = blasthits %>%
+  group_by(QueryID) %>%
+  partition(cluster) %>%  #split groups into cluster units
+  do({lca2(.)}) %>%
+  collect()
+
+#count reads matching species:
+spcount = prepare %>%
+  group_by(QueryID) %>%
+  slice(1) %>%
+  group_by(species) %>%
+  summarize(count=n()) %>%
+  arrange(desc(count)) %>%
+  filter(!is.na(species))
+
+
+#count reads matching to genera:
+gencount = prepare %>%
+  group_by(QueryID) %>%
+  slice(1) %>%
+  group_by(genus) %>%
+  summarize(count=n()) %>%
+  arrange(desc(count)) %>%
+  filter(!is.na(genus))
+
+#count reads matching to families
+famcount = prepare %>%
+  group_by(QueryID) %>%
+  slice(1) %>%
+  group_by(family) %>%
+  summarize(count=n()) %>%
+  arrange(desc(count)) %>%
+  filter(!is.na(family))
+
+(p1 = ggplot(gencount) +
+  geom_col(aes(x=fct_reorder(genus, count, .desc=T), y=count)) + 
+  scale_y_log10() +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle=90)) +
+  xlab('Genus')
+)
+
+(p2 = ggplot(famcount) +
+  geom_col(aes(x=fct_reorder(family, count, .desc=T), y=count)) + 
+  scale_y_log10() +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle=90)) +
+  xlab('Family')
+)
+
+```
