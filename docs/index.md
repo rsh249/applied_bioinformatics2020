@@ -54,6 +54,8 @@ Learn more about the Oxford Nanopore technology <a href="https://nanoporetech.co
 
 <a href='section2/lca.html'> Lowest Common Ancestor Algorithm with dplyr: Attempt 1 </a>
 
+<a href='section2/lca2.html'> Lowest Common Ancestor Algorithm with dplyr: Attempt 2 </a>
+
 Other classification methods
 
 <h3 id="S3"> Section 3: High Performance Computing </h3>
