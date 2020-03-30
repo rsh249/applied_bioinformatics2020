@@ -310,146 +310,213 @@ div.tocify {
 </div>
 
 
-<div id="goals" class="section level1">
-<h1>Goals</h1>
-<ul>
-<li>Perform BLAST searches in R using rBLAST.</li>
-<li>Preliminary visualization of results data.</li>
-</ul>
-</div>
-<div id="log-in" class="section level1">
-<h1>Log in:</h1>
-<p><a href="https://scc-ondemand.bu.edu">scc-ondemand.bu.edu</a></p>
-</div>
-<div id="blast-analysis" class="section level1">
-<h1>BLAST Analysis</h1>
-<div id="step-1-load-libraries" class="section level2">
-<h2>Step 1: Load libraries</h2>
-<p>Create a new R script and load the following libraries:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(rBLAST)
-<span class="kw">library</span>(Biostrings)
+<div id="the-task-scheduler" class="section level1">
+<h1>The Task Scheduler</h1>
+<p>For when you don’t want to wait around for your analysis to finish.</p>
+<p>Today you will:</p>
+<ol style="list-style-type: decimal">
+<li>Set up an R script to run a BLAST query from an eDNA fastq file</li>
+<li>Write a script for the PBS scheduler to submit the BLAST analysis to the cluster.</li>
+<li>Run this analysis via a Login Node.</li>
+</ol>
+<div id="the-r-script" class="section level2">
+<h2>The R script</h2>
+<p>Try picking a new SRA file: [SRA Run Selector] (<a href="https://www.ncbi.nlm.nih.gov/Traces/study/?query_key=1&amp;WebEnv=NCID_1_16560408_130.14.22.33_5555_1585531766_1906681735_0MetA0_S_HStore&amp;o=run_s%3Ad%3Bacc_s%3Aa#">https://www.ncbi.nlm.nih.gov/Traces/study/?query_key=1&amp;WebEnv=NCID_1_16560408_130.14.22.33_5555_1585531766_1906681735_0MetA0_S_HStore&amp;o=run_s%3Ad%3Bacc_s%3Aa#</a>)</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(Biostrings)
 <span class="kw">library</span>(taxonomizr)
 <span class="kw">library</span>(ggplot2)
 <span class="kw">library</span>(ShortRead)
 <span class="kw">library</span>(dplyr)
 <span class="kw">library</span>(stringi)
-<span class="kw">library</span>(forcats)</code></pre></div>
-<p>Then make sure to move to your current user directory in the shared project space if needed:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">setwd</span>(<span class="st">'/projectnb/ct-shbioinf/yourusername'</span>)</code></pre></div>
-<p>IF any of these libraries fail to load, troubleshoot their installation.</p>
-<p>You <em>might</em> need:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">devtools<span class="op">::</span><span class="kw">install_github</span>(<span class="st">&quot;mhahsler/rBLAST&quot;</span>)</code></pre></div>
-</div>
-<div id="step-2-read-fastq-file-from-sra" class="section level2">
-<h2>Step 2: Read fastq file from SRA</h2>
-<p>Look at the <a href="https://www.ncbi.nlm.nih.gov/Traces/study/?acc=PRJNA605442%20&amp;o=acc_s%3Aa">list of eDNA samples</a></p>
-<p>Pick one of the “SRR####” ID numbers and paste it in the code below:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Download SRA File:</span>
-srr=<span class="kw">c</span>(<span class="st">'SRR11043497'</span>)
-<span class="kw">system</span>(<span class="kw">paste</span>(<span class="st">'fastq-dump'</span>, srr, <span class="dt">sep=</span><span class="st">' '</span>))</code></pre></div>
-<p>Read the new fastq file:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dna =<span class="st"> </span><span class="kw">readFastq</span>(<span class="st">'.'</span>, <span class="dt">pattern=</span>srr)
+<span class="kw">library</span>(forcats)
+<span class="kw">library</span>(rBLAST)
+<span class="kw">library</span>(multidplyr)
+<span class="kw">library</span>(cowplot)
 
-<span class="co"># parse DNA sequences</span>
-reads =<span class="st"> </span><span class="kw">sread</span>(dna, <span class="dt">id=</span><span class="kw">id</span>(dna))
-<span class="co"># parse quality scores</span>
-qscores =<span class="st"> </span><span class="kw">quality</span>(dna)</code></pre></div>
-<p>Now, here you could add your code to create plots of the read length and quality score histograms.</p>
-</div>
-<div id="step-3-access-blast-database" class="section level2">
-<h2>Step 3: Access BLAST Database</h2>
-<p>Your instructor has set up a blast database using the <a href="https://www.ncbi.nlm.nih.gov/nuccore">NCBI nucleotide database</a> by running the following in the terminal: (DO NOT DO THIS YOURSELVES, THIS IS FOR DEMONSTRATION ONLY)</p>
-<pre><code>## #!/bin/sh -l
-## #
-## #Number of cores requested
-## #$ -pe omp 1
-## 
-## #Give the name to the job
-## #$ -N dustmasker
-## 
-## #Send an email when the job is finished (or aborted)
-## #$ -m ae
-## 
-## #Join the error and output file
-## #$ -j y
-## 
-## 
-## # Set the runtime limit (default 12 hours):
-## #$ -l h_rt=36:00:00
-## 
-## # Specify your project
-## #$ -P ct-shbioinf
-## 
-## module load blast+
-## 
-## cd /projectnb/ct-shbioinf/data
-## wget ftp://ftp.ncbi.nlm.nih.gov/blast/db/FASTA/nt.gz
-## gunzip nt.gz 
-## 
-## #make unmasked database
-## makeblastdb -in nt.fa -dbtype nucl -title nt</code></pre>
-<p>The ‘nt’ database is the same one that you access if you use the <a href="https://blast.ncbi.nlm.nih.gov/Blast.cgi?PROGRAM=blastn&amp;PAGE_TYPE=BlastSearch&amp;LINK_LOC=blasthome">online blast portal</a>.</p>
-<div id="accessing-the-built-database" class="section level3">
-<h3>Accessing the built database</h3>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co"># rBLAST function for connecting to the database</span>
-bl &lt;-<span class="st"> </span><span class="kw">blast</span>(<span class="dt">db=</span><span class="st">&quot;/projectnb/ct-shbioinf/blast/nt.fa&quot;</span>, <span class="dt">type=</span><span class="st">'blastn'</span>)</code></pre></div>
-</div>
-</div>
-<div id="step-4-run-blast-search" class="section level2">
-<h2>Step 4: Run BLAST search</h2>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cl &lt;-<span class="st"> </span><span class="kw">predict</span>(bl, reads, <span class="dt">BLAST_args =</span> <span class="st">'-num_threads 12 -evalue 1e-100'</span>)
-accid =<span class="st"> </span><span class="kw">as.character</span>(cl<span class="op">$</span>SubjectID) <span class="co"># accession IDs of BLAST hits</span></code></pre></div>
-<p>The object ‘cl’ that is returned is a table of all of the hits that the blast algorithm found for every read. We put the SubjectID column in it’s own object called ‘accid’ so we can search for taxonomic classifications of each hit.</p>
-</div>
-<div id="step-5-search-ncbi-taxonomy" class="section level2">
-<h2>Step 5: Search NCBI Taxonomy</h2>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#load the taxonomy database files 'nodes' and 'names'</span>
+<span class="co">#devtools::install_github(&quot;tidyverse/multidplyr&quot;)</span>
+<span class="co">#devtools::install_github(&quot;mhahsler/rBLAST&quot;)</span>
+
+<span class="co"># Download SRA File:</span>
+srr=<span class="kw">c</span>(<span class="st">'SRR11206998'</span>)
+<span class="kw">system</span>(<span class="kw">paste</span>(<span class="st">'fastq-dump'</span>, srr, <span class="dt">sep=</span><span class="st">' '</span>))
+
+
+<span class="co"># Read taxonomy database</span>
 taxaNodes&lt;-<span class="kw">read.nodes.sql</span>(<span class="st">&quot;/projectnb/ct-shbioinf/taxonomy/data/nodes.dmp&quot;</span>)
 taxaNames&lt;-<span class="kw">read.names.sql</span>(<span class="st">&quot;/projectnb/ct-shbioinf/taxonomy/data/names.dmp&quot;</span>)
 
-<span class="co"># Search the taxonomy by accession ID #</span>
 
-<span class="co"># takes accession number and gets the taxonomic ID</span>
-ids&lt;-<span class="kw">accessionToTaxa</span>(accid,<span class="st">'/projectnb/ct-shbioinf/taxonomy/data/accessionTaxa.sql'</span>)
+<span class="co"># read fastq</span>
+dna =<span class="st"> </span><span class="kw">readFastq</span>(<span class="kw">paste</span>(srr, <span class="st">'.fastq'</span>,<span class="dt">sep=</span><span class="st">''</span>))
+reads =<span class="st"> </span><span class="kw">sread</span>(dna)
+qscores =<span class="st"> </span><span class="kw">quality</span>(dna) 
 
-<span class="co"># displays the taxonomic names from each ID #</span>
+<span class="co"># plot readlength</span>
+widths =<span class="st"> </span><span class="kw">as.data.frame</span>(reads<span class="op">@</span>ranges<span class="op">@</span>width)
+(widthplot &lt;-<span class="st"> </span><span class="kw">ggplot</span>(widths) <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_histogram</span>(<span class="kw">aes</span>(<span class="dt">x=</span>reads<span class="op">@</span>ranges<span class="op">@</span>width), <span class="dt">binwidth =</span> <span class="dv">10</span>) <span class="op">+</span><span class="st"> </span>
+<span class="st">    </span><span class="kw">theme_linedraw</span>() <span class="op">+</span><span class="st"> </span>
+<span class="st">    </span><span class="kw">xlab</span>(<span class="st">'Read Length (bp)'</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">xlim</span>(<span class="dv">0</span>,<span class="dv">2000</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">ggtitle</span>(<span class="st">'Read length distribution for 550bp amplicon'</span>))
+<span class="kw">ggsave</span>(widthplot, <span class="dt">file=</span><span class="st">'readlengths.png'</span>)
+
+<span class="co"># plot qscores</span>
+numqscores =<span class="st"> </span><span class="kw">as</span>(qscores, <span class="st">&quot;matrix&quot;</span>) <span class="co"># converts to numeric scores automatically</span>
+avgscores =<span class="st"> </span><span class="kw">apply</span>(numqscores, <span class="dv">1</span>, mean, <span class="dt">na.rm=</span><span class="ot">TRUE</span>) <span class="co">#apply the function mean() across </span>
+avgscores =<span class="st"> </span><span class="kw">as.data.frame</span>(avgscores)
+(<span class="dt">qscores =</span> <span class="kw">ggplot</span>(avgscores) <span class="op">+</span>
+<span class="st">    </span><span class="kw">geom_histogram</span>(<span class="kw">aes</span>(<span class="dt">x=</span>avgscores), <span class="dt">binwidth=</span><span class="fl">0.2</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">theme_linedraw</span>() <span class="op">+</span>
+<span class="st">    </span><span class="kw">xlab</span>(<span class="st">'Quality Score'</span>) <span class="op">+</span>
+<span class="st">    </span><span class="kw">ggtitle</span>(<span class="st">'Per Read Average Quality'</span>))
+<span class="kw">ggsave</span>(qscores, <span class="dt">file=</span><span class="st">'quality.png'</span>)
+
+
+## blast
+bl &lt;-<span class="st"> </span><span class="kw">blast</span>(<span class="dt">db=</span><span class="st">&quot;/projectnb/ct-shbioinf/blast/nt.fa&quot;</span>)
+cl &lt;-<span class="st"> </span><span class="kw">predict</span>(bl, reads, <span class="dt">BLAST_args =</span> <span class="st">'-num_threads 8 -evalue 1e-50'</span>)
+accid =<span class="st"> </span><span class="kw">as.character</span>(cl<span class="op">$</span>SubjectID) <span class="co"># accession IDs of BLAST hits</span>
+
+<span class="co"># Plot results</span>
+
+<span class="co">#takes accession number and gets the taxonomic ID</span>
+ids&lt;-<span class="kw">accessionToTaxa</span>(accid, <span class="st">'/projectnb/ct-shbioinf/taxonomy/data/accessionTaxa.sql'</span>)
+<span class="co">#taxlist displays the taxonomic names from each ID #</span>
 taxlist=<span class="kw">getTaxonomy</span>(ids, taxaNodes, taxaNames)
 
-<span class="co"># Merge BLAST hits and taxonomy of each</span>
-cltax=<span class="kw">cbind</span>(cl,taxlist)</code></pre></div>
-</div>
-<div id="step-6-visualize-top-hits" class="section level2">
-<h2>Step 6: Visualize top hits</h2>
-<p>The next step, to visualize the top matches to the unknown SRA sequences, is challenging. We will take one simple approach here to filter reads, but that may not be the best way to deal with these. This will be explored in future weeks.</p>
-<p>First, filter the hits table. This part uses some odd R syntax from the dplyr package. Spend some time understanding what’s going on in the block below:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">cltop =<span class="st"> </span>cltax <span class="op">%&gt;%</span><span class="st"> </span>
-<span class="st">  </span><span class="kw">group_by</span>(QueryID) <span class="op">%&gt;%</span><span class="st"> </span>
-<span class="st">  </span><span class="kw">top_n</span>(<span class="dt">n=</span><span class="dv">1</span>, <span class="dt">wt=</span>Bits)</code></pre></div>
-<p>Then, visualize:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">(<span class="kw">ggplot</span>(<span class="dt">data=</span>cltop) <span class="op">+</span>
-<span class="st">    </span><span class="kw">geom_bar</span>(<span class="kw">aes</span>(<span class="dt">x=</span><span class="kw">fct_infreq</span>(genus))) <span class="op">+</span>
-<span class="st">    </span><span class="kw">theme_minimal</span>() <span class="op">+</span>
-<span class="st">    </span><span class="kw">theme</span>(    
-      <span class="dt">axis.text.x  =</span> <span class="kw">element_text</span>(<span class="dt">angle =</span> <span class="dv">45</span>, <span class="dt">hjust=</span><span class="dv">1</span>)
-      ) <span class="op">+</span>
-<span class="st">    </span><span class="kw">xlab</span>(<span class="st">''</span>)
+cltax=<span class="kw">cbind</span>(cl,taxlist)
 
-  )</code></pre></div>
-<p><img src="data:image/png;base64,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" width="672" /></p>
+
+lca2 =<span class="st"> </span><span class="cf">function</span>(x) {
+  <span class="kw">require</span>(dplyr)
+  taxnames =<span class="st"> </span><span class="kw">c</span>(<span class="st">'superkingdom'</span>, <span class="st">'phylum'</span>, <span class="st">'order'</span>, <span class="st">'family'</span>, <span class="st">'genus'</span>, <span class="st">'species'</span>)
+  x =<span class="st"> </span>x <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(<span class="op">!</span><span class="kw">is.na</span>(superkingdom)) <span class="op">%&gt;%</span><span class="st"> </span><span class="kw">filter</span>(superkingdom <span class="op">!=</span><span class="st"> 'Bacteria'</span>) <span class="co"># need to deal with this more generally</span>
+  shortnames =<span class="st"> </span><span class="kw">apply</span>(x[,taxnames], <span class="dv">2</span>, unique)
+  countshnames =<span class="st"> </span><span class="kw">sapply</span>(shortnames, length)
+  numcount =<span class="st"> </span>countshnames<span class="op">==</span><span class="dv">1</span>
+  lastuni =<span class="st"> </span><span class="kw">tail</span>(<span class="kw">names</span>(shortnames[numcount<span class="op">==</span>T]), <span class="dt">n=</span><span class="dv">1</span>)
+  nombre =<span class="st"> </span><span class="kw">as.data.frame</span>(x[<span class="dv">1</span>,<span class="kw">which</span>(<span class="kw">colnames</span>(x) <span class="op">==</span><span class="st"> </span>lastuni)])
+  newtax &lt;-<span class="st"> </span><span class="kw">as.list</span>(<span class="kw">ifelse</span>(countshnames<span class="op">==</span><span class="dv">1</span>,shortnames,<span class="ot">NA</span>))
+  
+  ret =<span class="st"> </span>x <span class="op">%&gt;%</span><span class="st"> </span>
+<span class="st">    </span><span class="kw">mutate</span>(<span class="dt">last_common =</span> <span class="kw">as.character</span>(nombre[[<span class="dv">1</span>]])) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">mutate</span>(<span class="dt">level_lca =</span> lastuni) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">mutate</span>(<span class="dt">superkingdom =</span> newtax<span class="op">$</span>superkingdom) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">mutate</span>(<span class="dt">phylum =</span> newtax<span class="op">$</span>phylum) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">mutate</span>(<span class="dt">class =</span> newtax<span class="op">$</span>class) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">mutate</span>(<span class="dt">order =</span> newtax<span class="op">$</span>order) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">mutate</span>(<span class="dt">family =</span> newtax<span class="op">$</span>family) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">mutate</span>(<span class="dt">genus =</span> newtax<span class="op">$</span>genus) <span class="op">%&gt;%</span>
+<span class="st">    </span><span class="kw">mutate</span>(<span class="dt">species =</span> newtax<span class="op">$</span>species)
+  <span class="kw">return</span>(ret)
+}
+
+blasthits =<span class="st"> </span>cltax
+
+cluster &lt;-<span class="st"> </span><span class="kw">new_cluster</span>(<span class="dv">8</span>)
+<span class="kw">cluster_library</span>(cluster, <span class="st">'dplyr'</span>)
+<span class="kw">cluster_copy</span>(cluster, <span class="st">'lca2'</span>)
+
+<span class="co">#split groups across multiple CPU cores</span>
+prepare =<span class="st"> </span>blasthits <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(QueryID) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">partition</span>(cluster) <span class="op">%&gt;%</span><span class="st">  </span><span class="co">#split groups into cluster units</span>
+<span class="st">  </span><span class="kw">do</span>({<span class="kw">lca2</span>(.)}) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">collect</span>()
+
+<span class="co">#count reads matching species:</span>
+spcount =<span class="st"> </span>prepare <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(QueryID) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">slice</span>(<span class="dv">1</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(species) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">count=</span><span class="kw">n</span>()) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">arrange</span>(<span class="kw">desc</span>(count)) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">filter</span>(<span class="op">!</span><span class="kw">is.na</span>(species))
+
+
+<span class="co">#count reads matching to genera:</span>
+gencount =<span class="st"> </span>prepare <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(QueryID) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">slice</span>(<span class="dv">1</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(genus) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">count=</span><span class="kw">n</span>()) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">arrange</span>(<span class="kw">desc</span>(count)) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">filter</span>(<span class="op">!</span><span class="kw">is.na</span>(genus))
+
+<span class="co">#count reads matching to families</span>
+famcount =<span class="st"> </span>prepare <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(QueryID) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">slice</span>(<span class="dv">1</span>) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">group_by</span>(family) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">summarize</span>(<span class="dt">count=</span><span class="kw">n</span>()) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">arrange</span>(<span class="kw">desc</span>(count)) <span class="op">%&gt;%</span>
+<span class="st">  </span><span class="kw">filter</span>(<span class="op">!</span><span class="kw">is.na</span>(family))
+
+
+(<span class="dt">p1 =</span> <span class="kw">ggplot</span>(spcount) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_col</span>(<span class="kw">aes</span>(<span class="dt">x=</span><span class="kw">fct_reorder</span>(species, count, <span class="dt">.desc=</span>T), <span class="dt">y=</span>count)) <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">scale_y_log10</span>() <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme_minimal</span>() <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">angle=</span><span class="dv">90</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">xlab</span>(<span class="st">'Species'</span>)
+)
+
+(<span class="dt">p2 =</span> <span class="kw">ggplot</span>(gencount) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_col</span>(<span class="kw">aes</span>(<span class="dt">x=</span><span class="kw">fct_reorder</span>(genus, count, <span class="dt">.desc=</span>T), <span class="dt">y=</span>count)) <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">scale_y_log10</span>() <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme_minimal</span>() <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">angle=</span><span class="dv">90</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">xlab</span>(<span class="st">'Genus'</span>)
+)
+
+(<span class="dt">p3 =</span> <span class="kw">ggplot</span>(famcount) <span class="op">+</span>
+<span class="st">  </span><span class="kw">geom_col</span>(<span class="kw">aes</span>(<span class="dt">x=</span><span class="kw">fct_reorder</span>(family, count, <span class="dt">.desc=</span>T), <span class="dt">y=</span>count)) <span class="op">+</span><span class="st"> </span>
+<span class="st">  </span><span class="kw">scale_y_log10</span>() <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme_minimal</span>() <span class="op">+</span>
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">angle=</span><span class="dv">90</span>)) <span class="op">+</span>
+<span class="st">  </span><span class="kw">xlab</span>(<span class="st">'Family'</span>)
+)
+
+  gr =<span class="st"> </span><span class="kw">plot_grid</span>(p1, p2, p3, <span class="dt">ncol=</span><span class="dv">1</span>, <span class="dt">nrow=</span><span class="dv">3</span>)
+
+<span class="kw">ggsave</span>(gr, <span class="dt">file=</span><span class="st">'grid_taxonomy.png'</span>, <span class="dt">height =</span> <span class="dv">9</span>, <span class="dt">width =</span> <span class="dv">5</span>, <span class="dt">dpi=</span><span class="dv">500</span>)</code></pre></div>
 </div>
+<div id="pbs-script" class="section level2">
+<h2>PBS Script</h2>
+<p>The scheduler script is written not in R, but in a language called ‘bash’. This is the native language of the Terminal/Command Line on Unix operating systems with a few modifications for the PBS scheduler to read.</p>
+<p>The lines starting with a # are read by the scheduler to assign the job to the right node with enough resources. All other lines are executed when the script is run.</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="co">#!/bin/bash -l</span>
+<span class="co">#</span>
+<span class="co">#Number of cores requested</span>
+<span class="co">#$ -pe omp 12</span>
+
+<span class="co">#Give the name to the job</span>
+<span class="co">#$ -N blast_test</span>
+
+<span class="co">#Send an email when the job is finished (or aborted)</span>
+<span class="co">#$ -m ae</span>
+
+<span class="co">#Join the error and output file</span>
+<span class="co">#$ -j y</span>
+
+
+<span class="co"># Set the runtime limit (default 12 hours):</span>
+<span class="co">#$ -l h_rt=12:00:00</span>
+
+<span class="co"># Specify your project</span>
+<span class="co">#$ -P ct-shbioinf</span>
+
+
+<span class="co"># Stuff to execute: </span>
+
+<span class="ex">module</span> load blast+ <span class="co">#load blast module</span>
+<span class="ex">module</span> load R/3.6.2 <span class="co">#load R3.6.2</span>
+
+<span class="bu">cd</span> /projectnb/ct-shbioinf/YOURUSERNAME/YOURPROJECTFOLDER <span class="co">#use your notes or project folder. Wherever your script is located</span>
+
+<span class="ex">Rscript</span> <span class="st">'R/rBLAST.R'</span> <span class="co">#run the script</span></code></pre></div>
 </div>
-<div id="homework" class="section level1">
-<h1>Homework:</h1>
-<p>Write a single R file that performs the following:</p>
-<ol style="list-style-type: decimal">
-<li><p>Load all libraries required</p></li>
-<li><p>Download SRA data from the eDNA experimental data</p></li>
-<li><p>Plot read length and average quality score</p></li>
-<li><p>Perform blast search</p></li>
-<li><p>Summarize top hits in a graph.</p></li>
-</ol>
-<p>Post code to your blog for the week along with images of the three graphs.</p>
-<p><a href="https://devbioinformatics/bio332">home</a></p>
 </div>
 
 

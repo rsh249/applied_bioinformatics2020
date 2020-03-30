@@ -1,0 +1,237 @@
+---
+title: "BLAST nucleotide sequence search in R"
+author: "Prof. Harbert"
+date: "Section 2: Part 2"
+output: 
+  html_document:
+    theme: united
+    highlight: tango
+    df_print: paged
+    toc: true
+    toc_float: true
+    toc_depth: 4
+  
+---
+
+# The Task Scheduler
+
+For when you don't want to wait around for your analysis to finish.
+
+Today you will: 
+
+1) Set up an R script to run a BLAST query from an eDNA fastq file
+2) Write a script for the PBS scheduler to submit the BLAST analysis to the cluster.
+3) Run this analysis via a Login Node.
+
+## The R script
+
+Try picking a new SRA file: [SRA Run Selector] (https://www.ncbi.nlm.nih.gov/Traces/study/?query_key=1&WebEnv=NCID_1_16560408_130.14.22.33_5555_1585531766_1906681735_0MetA0_S_HStore&o=run_s%3Ad%3Bacc_s%3Aa#)
+
+```{R, eval=F}
+library(Biostrings)
+library(taxonomizr)
+library(ggplot2)
+library(ShortRead)
+library(dplyr)
+library(stringi)
+library(forcats)
+library(rBLAST)
+library(multidplyr)
+library(cowplot)
+
+#devtools::install_github("tidyverse/multidplyr")
+#devtools::install_github("mhahsler/rBLAST")
+
+# Download SRA File:
+srr=c('SRR11206998')
+system(paste('fastq-dump', srr, sep=' '))
+
+
+# Read taxonomy database
+taxaNodes<-read.nodes.sql("/projectnb/ct-shbioinf/taxonomy/data/nodes.dmp")
+taxaNames<-read.names.sql("/projectnb/ct-shbioinf/taxonomy/data/names.dmp")
+
+
+# read fastq
+dna = readFastq(paste(srr, '.fastq',sep=''))
+reads = sread(dna)
+qscores = quality(dna) 
+
+# plot readlength
+widths = as.data.frame(reads@ranges@width)
+(widthplot <- ggplot(widths) +
+    geom_histogram(aes(x=reads@ranges@width), binwidth = 10) + 
+    theme_linedraw() + 
+    xlab('Read Length (bp)') +
+    xlim(0,2000) +
+    ggtitle('Read length distribution for 550bp amplicon'))
+ggsave(widthplot, file='readlengths.png')
+
+# plot qscores
+numqscores = as(qscores, "matrix") # converts to numeric scores automatically
+avgscores = apply(numqscores, 1, mean, na.rm=TRUE) #apply the function mean() across 
+avgscores = as.data.frame(avgscores)
+(qscores = ggplot(avgscores) +
+    geom_histogram(aes(x=avgscores), binwidth=0.2) +
+    theme_linedraw() +
+    xlab('Quality Score') +
+    ggtitle('Per Read Average Quality'))
+ggsave(qscores, file='quality.png')
+
+
+## blast
+bl <- blast(db="/projectnb/ct-shbioinf/blast/nt.fa")
+cl <- predict(bl, reads, BLAST_args = '-num_threads 8 -evalue 1e-50')
+accid = as.character(cl$SubjectID) # accession IDs of BLAST hits
+
+# Plot results
+
+#takes accession number and gets the taxonomic ID
+ids<-accessionToTaxa(accid, '/projectnb/ct-shbioinf/taxonomy/data/accessionTaxa.sql')
+#taxlist displays the taxonomic names from each ID #
+taxlist=getTaxonomy(ids, taxaNodes, taxaNames)
+
+cltax=cbind(cl,taxlist)
+
+
+lca2 = function(x) {
+  require(dplyr)
+  taxnames = c('superkingdom', 'phylum', 'order', 'family', 'genus', 'species')
+  x = x %>% filter(!is.na(superkingdom)) %>% filter(superkingdom != 'Bacteria') # need to deal with this more generally
+  shortnames = apply(x[,taxnames], 2, unique)
+  countshnames = sapply(shortnames, length)
+  numcount = countshnames==1
+  lastuni = tail(names(shortnames[numcount==T]), n=1)
+  nombre = as.data.frame(x[1,which(colnames(x) == lastuni)])
+  newtax <- as.list(ifelse(countshnames==1,shortnames,NA))
+  
+  ret = x %>% 
+    mutate(last_common = as.character(nombre[[1]])) %>%
+    mutate(level_lca = lastuni) %>%
+    mutate(superkingdom = newtax$superkingdom) %>%
+    mutate(phylum = newtax$phylum) %>%
+    mutate(class = newtax$class) %>%
+    mutate(order = newtax$order) %>%
+    mutate(family = newtax$family) %>%
+    mutate(genus = newtax$genus) %>%
+    mutate(species = newtax$species)
+  return(ret)
+}
+
+blasthits = cltax
+
+cluster <- new_cluster(8)
+cluster_library(cluster, 'dplyr')
+cluster_copy(cluster, 'lca2')
+
+#split groups across multiple CPU cores
+prepare = blasthits %>%
+  group_by(QueryID) %>%
+  partition(cluster) %>%  #split groups into cluster units
+  do({lca2(.)}) %>%
+  collect()
+
+#count reads matching species:
+spcount = prepare %>%
+  group_by(QueryID) %>%
+  slice(1) %>%
+  group_by(species) %>%
+  summarize(count=n()) %>%
+  arrange(desc(count)) %>%
+  filter(!is.na(species))
+
+
+#count reads matching to genera:
+gencount = prepare %>%
+  group_by(QueryID) %>%
+  slice(1) %>%
+  group_by(genus) %>%
+  summarize(count=n()) %>%
+  arrange(desc(count)) %>%
+  filter(!is.na(genus))
+
+#count reads matching to families
+famcount = prepare %>%
+  group_by(QueryID) %>%
+  slice(1) %>%
+  group_by(family) %>%
+  summarize(count=n()) %>%
+  arrange(desc(count)) %>%
+  filter(!is.na(family))
+
+
+(p1 = ggplot(spcount) +
+  geom_col(aes(x=fct_reorder(species, count, .desc=T), y=count)) + 
+  scale_y_log10() +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle=90)) +
+  xlab('Species')
+)
+
+(p2 = ggplot(gencount) +
+  geom_col(aes(x=fct_reorder(genus, count, .desc=T), y=count)) + 
+  scale_y_log10() +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle=90)) +
+  xlab('Genus')
+)
+
+(p3 = ggplot(famcount) +
+  geom_col(aes(x=fct_reorder(family, count, .desc=T), y=count)) + 
+  scale_y_log10() +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle=90)) +
+  xlab('Family')
+)
+
+  gr = plot_grid(p1, p2, p3, ncol=1, nrow=3)
+
+ggsave(gr, file='grid_taxonomy.png', height = 9, width = 5, dpi=500)
+
+```
+
+## PBS Script
+
+The scheduler script is written not in R, but in a language called 'bash'. This is the native language of the Terminal/Command Line on Unix operating systems with a few modifications for the PBS scheduler to read.
+
+The lines starting with a # are read by the scheduler to assign the job to the right node with enough resources. All other lines are executed when the script is run.
+
+```{bash, eval=F}
+#!/bin/bash -l
+#
+#Number of cores requested
+#$ -pe omp 12
+
+#Give the name to the job
+#$ -N blast_test
+
+#Send an email when the job is finished (or aborted)
+#$ -m ae
+
+#Join the error and output file
+#$ -j y
+
+
+# Set the runtime limit (default 12 hours):
+#$ -l h_rt=12:00:00
+
+# Specify your project
+#$ -P ct-shbioinf
+
+
+# Stuff to execute: 
+
+module load blast+ #load blast module
+module load R/3.6.2 #load R3.6.2
+
+cd /projectnb/ct-shbioinf/YOURUSERNAME/YOURPROJECTFOLDER #use your notes or project folder. Wherever your script is located
+
+Rscript 'R/rBLAST.R' #run the script
+
+
+
+
+
+
+
+```
