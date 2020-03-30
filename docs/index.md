@@ -62,6 +62,8 @@ Other classification methods
 
 <a href='section3/intro_hpc.html'> Setting up on the HPC </a>
 
+<a href='section3/scheduling_tasks.html'> Scheduling Analyses on the HPC </a>
+
 <h3 id="S4"> Section 4: Reproducible Analyses </h3>
 
 <a href='section4/scripting.html'> R Scripts and Project Organization </a>
