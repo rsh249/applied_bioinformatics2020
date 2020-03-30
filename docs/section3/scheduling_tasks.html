@@ -310,7 +310,7 @@ div.tocify {
 </div>
 
 
-<div id="the-task-scheduler" class="section level1">
+<div id="the-task-scheduler" class="section level1 tabset tabset-fade tabset-pills">
 <h1>The Task Scheduler</h1>
 <p>For when you don’t want to wait around for your analysis to finish.</p>
 <p>Today you will:</p>
@@ -321,7 +321,7 @@ div.tocify {
 </ol>
 <div id="the-r-script" class="section level2">
 <h2>The R script</h2>
-<p>Try picking a new SRA file: [SRA Run Selector] (<a href="https://www.ncbi.nlm.nih.gov/Traces/study/?query_key=1&amp;WebEnv=NCID_1_16560408_130.14.22.33_5555_1585531766_1906681735_0MetA0_S_HStore&amp;o=run_s%3Ad%3Bacc_s%3Aa#">https://www.ncbi.nlm.nih.gov/Traces/study/?query_key=1&amp;WebEnv=NCID_1_16560408_130.14.22.33_5555_1585531766_1906681735_0MetA0_S_HStore&amp;o=run_s%3Ad%3Bacc_s%3Aa#</a>)</p>
+<p>Try picking a new SRA file: [SRA Run Selector] (<a href="https://www.ncbi.nlm.nih.gov/Traces/study/?acc=PRJNA605442&amp;ff=on" class="uri">https://www.ncbi.nlm.nih.gov/Traces/study/?acc=PRJNA605442&amp;ff=on</a>)</p>
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(Biostrings)
 <span class="kw">library</span>(taxonomizr)
 <span class="kw">library</span>(ggplot2)
@@ -337,7 +337,7 @@ div.tocify {
 <span class="co">#devtools::install_github(&quot;mhahsler/rBLAST&quot;)</span>
 
 <span class="co"># Download SRA File:</span>
-srr=<span class="kw">c</span>(<span class="st">'SRR11206998'</span>)
+srr=<span class="kw">c</span>(<span class="st">'SRR11043481'</span>)
 <span class="kw">system</span>(<span class="kw">paste</span>(<span class="st">'fastq-dump'</span>, srr, <span class="dt">sep=</span><span class="st">' '</span>))
 
 
@@ -515,8 +515,20 @@ famcount =<span class="st"> </span>prepare <span class="op">%&gt;%</span>
 
 <span class="bu">cd</span> /projectnb/ct-shbioinf/YOURUSERNAME/YOURPROJECTFOLDER <span class="co">#use your notes or project folder. Wherever your script is located</span>
 
-<span class="ex">Rscript</span> <span class="st">'R/rBLAST.R'</span> <span class="co">#run the script</span></code></pre></div>
+<span class="ex">Rscript</span> <span class="st">'code/rBLAST.R'</span> <span class="co">#run the script</span></code></pre></div>
 </div>
+</div>
+<div id="submitting-your-job" class="section level1">
+<h1>Submitting your Job</h1>
+<p>Run the following on the Terminal to submit your job:</p>
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="bu">cd</span> /projectnb/ct-shbioinf/YOURUSERNAME/YOURPROJECTFOLDER
+<span class="ex">qsub</span> code/blast_submit
+
+<span class="ex">qstat</span> -u YOURUSERNAME</code></pre></div>
+</div>
+<div id="homework" class="section level1">
+<h1>Homework</h1>
+<p>Attempt running this analysis as a submitted job. Report your results on Slack #general and attempt to troubleshoot errors.</p>
 </div>
 
 

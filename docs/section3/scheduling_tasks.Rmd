@@ -13,7 +13,7 @@ output:
   
 ---
 
-# The Task Scheduler
+# The Task Scheduler {.tabset .tabset-fade .tabset-pills}
 
 For when you don't want to wait around for your analysis to finish.
 
@@ -25,7 +25,7 @@ Today you will:
 
 ## The R script
 
-Try picking a new SRA file: [SRA Run Selector] (https://www.ncbi.nlm.nih.gov/Traces/study/?query_key=1&WebEnv=NCID_1_16560408_130.14.22.33_5555_1585531766_1906681735_0MetA0_S_HStore&o=run_s%3Ad%3Bacc_s%3Aa#)
+Try picking a new SRA file: [SRA Run Selector] (https://www.ncbi.nlm.nih.gov/Traces/study/?acc=PRJNA605442&ff=on)
 
 ```{R, eval=F}
 library(Biostrings)
@@ -43,7 +43,7 @@ library(cowplot)
 #devtools::install_github("mhahsler/rBLAST")
 
 # Download SRA File:
-srr=c('SRR11206998')
+srr=c('SRR11043481')
 system(paste('fastq-dump', srr, sep=' '))
 
 
@@ -226,12 +226,23 @@ module load R/3.6.2 #load R3.6.2
 
 cd /projectnb/ct-shbioinf/YOURUSERNAME/YOURPROJECTFOLDER #use your notes or project folder. Wherever your script is located
 
-Rscript 'R/rBLAST.R' #run the script
-
-
-
-
+Rscript 'code/rBLAST.R' #run the script
 
 
 
 ```
+
+# Submitting your Job
+
+Run the following on the Terminal to submit your job:
+
+```{bash, eval =F}
+cd /projectnb/ct-shbioinf/YOURUSERNAME/YOURPROJECTFOLDER
+qsub code/blast_submit
+
+qstat -u YOURUSERNAME
+```
+
+# Homework
+
+Attempt running this analysis as a submitted job. Report your results on Slack #general and attempt to troubleshoot errors.
