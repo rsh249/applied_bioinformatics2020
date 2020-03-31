@@ -223,6 +223,7 @@ The lines starting with a # are read by the scheduler to assign the job to the r
 
 module load blast+ #load blast module
 module load R/3.6.2 #load R3.6.2
+module load sratoolkit
 
 cd /projectnb/ct-shbioinf/YOURUSERNAME/YOURPROJECTFOLDER #use your notes or project folder. Wherever your script is located
 
@@ -237,7 +238,12 @@ Rscript 'code/rBLAST.R' #run the script
 Run the following on the Terminal to submit your job:
 
 ```{bash, eval =F}
-cd /projectnb/ct-shbioinf/YOURUSERNAME/YOURPROJECTFOLDER
+cd /projectnb/ct-shbioinf/YOURUSERNAME/YOURPROJECTFOLDER #make sure this gets you to the same place as the script above shows
+
+#check where you are
+pwd
+ls code
+
 qsub code/blast_submit
 
 qstat -u YOURUSERNAME

@@ -512,6 +512,7 @@ famcount =<span class="st"> </span>prepare <span class="op">%&gt;%</span>
 
 <span class="ex">module</span> load blast+ <span class="co">#load blast module</span>
 <span class="ex">module</span> load R/3.6.2 <span class="co">#load R3.6.2</span>
+<span class="ex">module</span> load sratoolkit
 
 <span class="bu">cd</span> /projectnb/ct-shbioinf/YOURUSERNAME/YOURPROJECTFOLDER <span class="co">#use your notes or project folder. Wherever your script is located</span>
 
@@ -521,7 +522,12 @@ famcount =<span class="st"> </span>prepare <span class="op">%&gt;%</span>
 <div id="submitting-your-job" class="section level1">
 <h1>Submitting your Job</h1>
 <p>Run the following on the Terminal to submit your job:</p>
-<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="bu">cd</span> /projectnb/ct-shbioinf/YOURUSERNAME/YOURPROJECTFOLDER
+<div class="sourceCode"><pre class="sourceCode bash"><code class="sourceCode bash"><span class="bu">cd</span> /projectnb/ct-shbioinf/YOURUSERNAME/YOURPROJECTFOLDER <span class="co">#make sure this gets you to the same place as the script above shows</span>
+
+<span class="co">#check where you are</span>
+<span class="bu">pwd</span>
+<span class="fu">ls</span> code
+
 <span class="ex">qsub</span> code/blast_submit
 
 <span class="ex">qstat</span> -u YOURUSERNAME</code></pre></div>
