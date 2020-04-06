@@ -56,6 +56,8 @@ Learn more about the Oxford Nanopore technology <a href="https://nanoporetech.co
 
 <a href='section2/lca_v2.html'> Lowest Common Ancestor Algorithm with dplyr: Attempt 2 </a>
 
+<a href='section2/rentrez.html'> Searching NCBI Databases with rentrez </a>
+
 Other classification methods
 
 <h3 id="S3"> Section 3: High Performance Computing </h3>
@@ -64,11 +66,13 @@ Other classification methods
 
 <a href='section3/scheduling_tasks.html'> Scheduling Analyses on the HPC </a>
 
+Parallel Computing
+
 <h3 id="S4"> Section 4: Reproducible Analyses </h3>
 
 <a href='section4/scripting.html'> R Scripts and Project Organization </a>
 
-
+Git Releases
 
 
 

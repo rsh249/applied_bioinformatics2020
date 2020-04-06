@@ -1,0 +1,140 @@
+---
+title: "Searching Downloading data from NCBI"
+author: "Prof. Harbert"
+date: "Section 2: Part 6"
+output: 
+  html_document:
+    theme: united
+    highlight: tango
+    df_print: paged
+    toc: true
+    toc_float: true
+    toc_depth: 4
+  
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Searching NCBI data
+
+[Tutorial](https://ropensci.org/tutorials/rentrez_tutorial/)
+
+```{R}
+#devtools::install_github("ropensci/rentrez") #if needed
+library(rentrez)
+
+# basic pubmed search
+
+
+```
+
+## Explore NCBI Databases
+
+[NCBI](https://www.ncbi.nlm.nih.gov/)
+
+```{R}
+# list all ncbi databases
+entrez_dbs()
+
+#find searchable terms in one DB
+entrez_db_searchable("sra")
+
+
+
+```
+
+
+## Entrez Search
+
+Can we use rentrez to download data for the [eDNA BioProject](https://www.ncbi.nlm.nih.gov/bioproject/PRJNA605442)?
+
+```{R}
+r_search <- entrez_search(db="sra", term="PRJNA605442[GPRJ]")
+print(r_search)
+```
+
+Cool... But what can we do with that object? It contains no *data*, but rather links to other data entries. 
+
+```{R}
+print(r_search$ids)
+```
+
+These ID numbers will link to individual records in the BioProject. But there are only 20 returned by default. The `r_search` object tells us that there should be 58. To get the rest we need to increase the `retmax` argument. The default is 20 to control data returned on very large queries.
+
+```{R}
+r_search <- entrez_search(db='sra', term="PRJNA605442[GPRJ]", retmax=60)
+r_search$ids
+```
+
+To get data try entrez_fetch() >>
+
+## Entrez Fetch
+
+
+```{R}
+id_fetch <- entrez_fetch(db="sra", id="10232377", rettype = 'xml')
+
+head(id_fetch) # WTF!?!
+```
+
+### Parse Your XML
+
+```{R}
+library(xml2)
+library(dplyr)
+doc <- read_xml(id_fetch)
+SRAFile <- doc %>% xml_find_all("//RUN_SET") %>% xml_find_all("//SRAFile")
+
+print(SRAFile)
+
+print(SRAFile %>% xml_attr('url')) ## << That might work!
+
+
+```
+
+Put it all together:
+
+```{R, message = F}
+library(rentrez)
+library(ShortRead)
+library(Biostrings)
+library(xml2)
+library(dplyr)
+library(ggplot2)
+r_search <- entrez_search(db='sra', term="PRJNA605442[GPRJ]", retmax=60)
+id_fetch <- entrez_fetch(db="sra", id=r_search$ids, rettype = 'xml')
+doc <- read_xml(id_fetch)
+SRAFile <- doc %>% 
+  xml_find_all("//RUN_SET") %>% 
+  xml_find_all("//SRAFile") %>% 
+  xml_attr('url') 
+
+get_one = SRAFile[grepl("SRR11043468", SRAFile)]
+download.file(SRAFile[1], 'test.fastq')
+dna = readFastq('.', pattern='test.fastq') ## On to BLAST analysis >>>
+
+reads = sread(dna)
+qscores = quality(dna) 
+
+# plot readlength
+widths = as.data.frame(reads@ranges@width)
+(widthplot <- ggplot(widths) +
+    geom_histogram(aes(x=reads@ranges@width), binwidth = 10) + 
+    theme_linedraw() + 
+    xlab('Read Length (bp)') +
+    xlim(0,2000) +
+    ggtitle('Read length distribution for 550bp amplicon'))
+
+
+
+```
+
+# Homework
+
+Adjust your rBLAST script to download a file from the SRA eDNA BioProject instead of using fastq-dump.
+
+Test using your qsub script (and verify output).
+
+[Home](https://bio332.devbioinformatics.org)
