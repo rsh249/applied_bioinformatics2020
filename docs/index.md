@@ -66,7 +66,7 @@ Other classification methods
 
 <a href='section3/scheduling_tasks.html'> Scheduling Analyses on the HPC </a>
 
-Parallel Computing
+<a href='section3/parallel.html'>Parallel Computing </a>
 
 <h3 id="S4"> Section 4: Reproducible Analyses </h3>
 

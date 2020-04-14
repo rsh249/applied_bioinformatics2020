@@ -1,0 +1,200 @@
+---
+title: "Parallel Computing"
+author: "Prof. Harbert"
+date: "Section 3: Part 3"
+output: 
+  html_document:
+    theme: united
+    highlight: tango
+    df_print: paged
+    toc: true
+    toc_float: true
+    toc_depth: 4
+  
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Parallel Computing in R {.tabset .tabset-fade .tabset-pills}
+
+## First: Repeating actions
+
+So far we have seen R code for *doing* many things, but we have not gotten into the fundamental programming of repeating actions. How does dplyr look through your whole table to filter rows? What is taxonomizr doing to look up all of the taxon IDs?
+
+The answer is that, behind the scenes, there is R code to evaluate some operation across a set of data. Fundamentally, these structures are called 'loops' or sometimes 'for loops'. These are code structures that repeat some action until a criteria to end is satisfied (e.g., when the end of a vector is reached).
+
+Let's see some of this with some real calculations. First, set up some data:
+
+```{r}
+do = seq(1, 50000)
+
+# and a function:
+is.prime <- function(num) {
+  r = vector()
+  for(n in 1:length(num)){
+   if (num[n] == 2) {
+      r = c(r, TRUE)
+   } else if (any(num[n] %% 2:(num[n]-1) == 0)) {
+      r = c(r, FALSE)
+   } else { 
+      r = c(r, TRUE)
+   }
+  }
+  return(r)
+}
+```
+
+
+Then, calculate whether each of the numbers in the vector 'do' are prime. 
+
+The for loop way: (not as fast, harder to write, more flexible -- any code can go inside the loop)
+
+```{r}
+p = proc.time();
+sq=vector()
+for (d in 1:length(do)){sq[d] = is.prime(do[d])}
+proc.time() - p; #These numbers tells us how long the job took
+
+```
+
+The "apply" way: (easy to write, flexible, often faster)
+
+```{r}
+p = proc.time();
+l_works = sapply(do, is.prime);
+proc.time() - p; 
+```
+
+## Examples: parallel
+
+Load the R 'parallel' package
+
+```{r}
+library(parallel)
+```
+
+This time let's do the square root calculation in parallel on four of your CPU cores:
+
+This involves a few new steps:
+1) Open a CPU cluster object (size n)
+2) Split job into discrete chunks
+3) Run jobs across each process (1:n)
+4) Collect results data objects
+5) Clean up your cluster
+
+
+```{r}
+nclus = 4 #Number of cores to allocate to this job:
+cl = makeCluster(nclus, type = 'FORK')
+#Create cluster of size n
+p = proc.time()#start timer
+splits = clusterSplit(cl, do) #split job into smaller parts of equal size
+p_works = parSapply(cl, do, is.prime) #Run parts across cluster and collect results
+proc.time() - p #end timer
+
+stopCluster(cl)
+```
+
+Look at object l_works and p_works and see if they are the same.
+
+## Examples: multidplyr
+
+Our 'dplyr' toolkit also has syntax for parallel processing. Any operation can be directly translated to parallel using the 'multidplyr' library and the 'partition()' function. If you are using group_by() the partitions will be made on groups.
+
+The multidplyr way: (slow? But very dplyr-y)
+
+```{R}
+library(dplyr)
+library(multidplyr)
+
+#make a data frame
+dplyr.do = do %>% as.data.frame() %>%
+  rename(num = '.') %>% 
+  group_by(num)
+
+
+#without parallel:
+p = proc.time()
+prepare = dplyr.do %>% rowwise() %>% mutate(isit = is.prime(num))
+proc.time() -p
+
+
+cluster <- new_cluster(nclus)
+cluster_library(cluster, 'dplyr')
+cluster_copy(cluster, 'is.prime')
+
+p = proc.time()
+#split groups across multiple CPU cores
+prepare = dplyr.do %>%
+  partition(cluster) %>%  #split  into cluster units
+  mutate(isit = is.prime(num)) %>%
+  collect() %>%
+  arrange(num)
+proc.time() - p
+```
+
+
+
+## rBLAST
+
+The BLAST analyses we have been working on have been parallelized by the *blastn* software using the '-num_threads' argument. This method is pretty good, but let's see if we can do as well or better with an R parallelization approach.
+
+First, with '-num_threads'
+
+```{r, message = F, error=F}
+library(rBLAST)
+library(ShortRead)
+```
+
+```{r}
+
+blastdb = "/projectnb/ct-shbioinf/blast/nt.fa"
+srr=c('SRR11043497')
+system(paste('fastq-dump', srr, sep=' '))
+dna = readFastq('.', pattern=srr)
+reads = sread(dna, id=id(dna))
+reads = reads[1:100]
+bl <- blast(db=blastdb, type='blastn')
+# linear
+p = proc.time()
+cl <- predict(bl, reads, BLAST_args = ' -evalue 1e-100') #blastn with 4 threads
+proc.time() - p
+
+# with num_threads 2
+p = proc.time()
+cl <- predict(bl, reads, BLAST_args = '-num_threads 2 -evalue 1e-100') #blastn with 4 threads
+proc.time() - p
+
+
+
+```
+
+Then, a simple function so we can apply it.
+
+```{r}
+blastit = function(x) {
+  return(predict(bl, x,  BLAST_args= '-evalue 1e-100'))
+}
+```
+
+And the parallel apply solution: (2 cores is NOT 2x faster)
+
+```{r}
+nclus = 2
+p = proc.time()
+cl = makeCluster(nclus, type = 'FORK')
+splits = clusterSplit(cl, reads)
+p_works = parLapply(cl, splits, blastit)
+stopCluster(cl)
+proc.time() - p
+```
+
+
+# Homework
+
+Work on project code + writing.
+
+[Home](https://bio332.devbioinformatics.org)
